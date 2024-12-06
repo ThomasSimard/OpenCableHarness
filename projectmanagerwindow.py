@@ -7,15 +7,24 @@ import tkinter as tk
 import json
 from json.decoder import JSONDecodeError
 
-class ProjectWindow:
+import pathlib
+
+from projectwindow import ProjectWindow
+
+class ProjectManagerWindow:
     """Let the user create and open projects"""
 
     def __init__(self, root):
+        self.root = root
+
+        self.project_file_path = ""
+        self.project_directory_path = f"{pathlib.Path().resolve()}\projects"
+
         self.recent_project_label = tk.Label(root, text="Recent project:")
         self.recent_project_label.grid(row=0, column=0)
 
-        self.recent_project_listbox = tk.Listbox(root, width=40)
-        self.recent_project_listbox.grid(row=1, column=0, columnspan=2)
+        self.recent_project_listbox = tk.Listbox(root, width=80)
+        self.recent_project_listbox.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
 
         self.recent_project_list = []
         self.load_recent_project()
@@ -28,7 +37,7 @@ class ProjectWindow:
         self.search_project_button = tk.Button(root, text="Search project file",
             command=self.search_project)
 
-        self.search_project_button.grid(row=3, column=0, columnspan=2)
+        self.search_project_button.grid(row=3, column=0, columnspan=2, padx=20, pady=20)
 
         self.separator = ttk.Separator(root, orient='horizontal')
         self.separator.grid(row=4, column=0, columnspan=2, sticky="ew")
@@ -37,7 +46,7 @@ class ProjectWindow:
         self.create_project_label.grid(row=5, column=0, columnspan=2)
 
         self.project_name_label = tk.Label(root, text="Project name:")
-        self.project_name_label.grid(row=6, column=0)
+        self.project_name_label.grid(row=7, column=0)
 
         self.project_name_entry = tk.Entry(root)
         self.project_name_entry.grid(row=7, column=1)
@@ -45,7 +54,7 @@ class ProjectWindow:
         self.new_project_button = tk.Button(root, text="Create new project",
             command=self.create_project)
 
-        self.new_project_button.grid(row=8, column=0, columnspan=2)
+        self.new_project_button.grid(row=8, column=0, columnspan=2, padx=20, pady=20)
 
     def load_recent_project(self):
         """Load recent projects"""
@@ -66,25 +75,52 @@ class ProjectWindow:
         if selection == ():
             print("No project selected!")
         else:
-            print(self.recent_project_listbox.get(selection))
+            self.project_file_path = self.recent_project_listbox.get(selection)
+            self.open_project_tab()
+
+    def update_recent_project(self):
+        "Update the save list of recent projects"
+
+        if self.project_file_path not in self.recent_project_list:
+            self.recent_project_list.append(self.project_file_path)
+
+            with open("recent_project.txt", 'w', encoding='utf-8') as save_file:
+                save_file.write(json.dumps(self.recent_project_list))
+
+            self.recent_project_listbox.delete(0, len(self.recent_project_list))
+            self.load_recent_project()
 
     def search_project(self):
         "Search a project in the file explorer"
-        file_path = filedialog.askopenfilename(initialdir = "/",
+        self.project_file_path = filedialog.askopenfilename(initialdir = "/",
                                           title = "Select a project file",
                                           filetypes = (("OpenCableHarness project files",
                                                         "*.OCH*"),
                                                        ("all files",
                                                         "*.*")))
 
-        if file_path not in self.recent_project_list:
-            self.recent_project_list.append(file_path)
-
-            with open("recent_project.txt", 'w', encoding='utf-8') as save_file:
-                save_file.write(json.dumps(self.recent_project_list))
-
-        print(file_path)
+        self.update_recent_project()
+        self.open_project_tab()
 
     def create_project(self):
         "Create a new project"
-        print(self.project_name_entry.get())
+        self.project_file_path = f"{self.project_directory_path}\{self.project_name_entry.get()}.OCH"
+
+        self.update_recent_project()
+        self.open_project_tab()
+
+    def get_project_name(self):
+        "Get the project name from the path"
+
+        return self.project_file_path.split("\\")[-1]
+
+    def open_project_tab(self):
+        "Once a project is created or opened, open it in a new tab"
+
+        project_tab_frame = ttk.Frame(self.root.master)
+
+        project_tab = ProjectWindow(project_tab_frame)
+        #self.root.master.bind("<Button-3>", project_tab.do_popup)
+
+        self.root.master.add(project_tab_frame, text=self.get_project_name())
+        self.root.master.select(self.root.master.index("end") - 1)
