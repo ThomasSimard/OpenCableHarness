@@ -1,26 +1,22 @@
 "Main app"
-from tkinter import ttk
-import tkinter as tk
+import dearpygui.dearpygui as imgui
 
-from projectmanagerwindow import ProjectManagerWindow
+from app.mainwindow import MainWindow
 
 def main():
     "Main fonction of the app"
+    imgui.create_context()
+    imgui.create_viewport(title='Open Cable Harness', width=600, height=400)
 
-    root = tk.Tk()
-    root.config(width=800, height=600)
-    root.title("Open Cable Harness")
+    MainWindow()
 
-    tab_manager = ttk.Notebook(root)
+    imgui.setup_dearpygui()
+    imgui.show_viewport()
 
-    project_manager_tab_frame = ttk.Frame(tab_manager)
+    imgui.set_primary_window("Primary Window", True)
 
-    ProjectManagerWindow(project_manager_tab_frame)
-
-    tab_manager.add(project_manager_tab_frame, text ='Project manager')
-    tab_manager.grid(row=0)
-
-    root.mainloop()
+    imgui.start_dearpygui()
+    imgui.destroy_context()
 
 if __name__ == '__main__':
     main()
