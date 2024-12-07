@@ -20,8 +20,8 @@ class ProjectManagerWindow:
         self.project_file_path = ""
         self.project_directory_path = f"{pathlib.Path().resolve()}\projects"
 
-        self.recent_project_label = tk.Label(root, text="Recent project:")
-        self.recent_project_label.grid(row=0, column=0)
+        recent_project_label = tk.Label(root, text="Recent project:")
+        recent_project_label.grid(row=0, column=0)
 
         self.recent_project_listbox = tk.Listbox(root, width=80)
         self.recent_project_listbox.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
@@ -29,32 +29,32 @@ class ProjectManagerWindow:
         self.recent_project_list = []
         self.load_recent_project()
 
-        self.open_recent_project_button = tk.Button(root, text="Open recent project",
+        open_recent_project_button = tk.Button(root, text="Open recent project",
             command=self.open_recent_project)
 
-        self.open_recent_project_button.grid(row=2, column=0, columnspan=2)
+        open_recent_project_button.grid(row=2, column=0, columnspan=2)
 
-        self.search_project_button = tk.Button(root, text="Search project file",
+        search_project_button = tk.Button(root, text="Search project file",
             command=self.search_project)
 
-        self.search_project_button.grid(row=3, column=0, columnspan=2, padx=20, pady=20)
+        search_project_button.grid(row=3, column=0, columnspan=2, padx=20, pady=20)
 
-        self.separator = ttk.Separator(root, orient='horizontal')
-        self.separator.grid(row=4, column=0, columnspan=2, sticky="ew")
+        separator = ttk.Separator(root, orient='horizontal')
+        separator.grid(row=4, column=0, columnspan=2, sticky="ew")
 
-        self.create_project_label = tk.Label(root, text="Create project")
-        self.create_project_label.grid(row=5, column=0, columnspan=2)
+        create_project_label = tk.Label(root, text="Create project")
+        create_project_label.grid(row=5, column=0, columnspan=2)
 
-        self.project_name_label = tk.Label(root, text="Project name:")
-        self.project_name_label.grid(row=7, column=0)
+        project_name_label = tk.Label(root, text="Project name:")
+        project_name_label.grid(row=7, column=0)
 
         self.project_name_entry = tk.Entry(root)
         self.project_name_entry.grid(row=7, column=1)
 
-        self.new_project_button = tk.Button(root, text="Create new project",
+        new_project_button = tk.Button(root, text="Create new project",
             command=self.create_project)
 
-        self.new_project_button.grid(row=8, column=0, columnspan=2, padx=20, pady=20)
+        new_project_button.grid(row=8, column=0, columnspan=2, padx=20, pady=20)
 
     def load_recent_project(self):
         """Load recent projects"""
@@ -119,8 +119,7 @@ class ProjectManagerWindow:
 
         project_tab_frame = ttk.Frame(self.root.master)
 
-        project_tab = ProjectWindow(project_tab_frame)
-        #self.root.master.bind("<Button-3>", project_tab.do_popup)
+        ProjectWindow(project_tab_frame)
 
         self.root.master.add(project_tab_frame, text=self.get_project_name())
         self.root.master.select(self.root.master.index("end") - 1)
