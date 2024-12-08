@@ -5,6 +5,8 @@ import dearpygui.dearpygui as imgui
 class NodeEditor:
     "Editor section"
 
+    node_list = [0, 1, 2]
+
     def __init__(self):
         with imgui.handler_registry():
             imgui.add_mouse_click_handler(button=1, callback=self.popup)
@@ -12,8 +14,8 @@ class NodeEditor:
         with imgui.node_editor(tag="node_editor",
             callback=self.link_nodes, delink_callback=self.delink_nodes):
 
-            for j in range(0, 3):
-                with imgui.node(label=f"Node {j}"):
+            for node in self.node_list:
+                with imgui.node(label=f"Node: {node}"):
                     for i in range(1,3):
                         with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled):
                             imgui.add_input_text(label=f"cable {i}", width=150)
@@ -21,6 +23,25 @@ class NodeEditor:
                             attribute_type=imgui.mvNode_Attr_Output):
 
                             imgui.add_input_text(label=f"cable {i}", width=150)
+
+    def add_node(self):
+        "Add node to editor"
+        name = imgui.get_value("popup_node_name")
+
+        self.node_list.append(name)
+
+        with imgui.node(label=f"Node: {name}", pos=imgui.get_mouse_pos(local=False),
+            parent="node_editor"):
+
+            for i in range(1,3):
+                with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled):
+                    imgui.add_input_text(label=f"cable {i}", width=150)
+                with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled,
+                    attribute_type=imgui.mvNode_Attr_Output):
+
+                    imgui.add_input_text(label=f"cable {i}", width=150)
+
+        self.delete_popup()
 
     def delete_popup(self):
         "Delete popup window"
@@ -45,10 +66,10 @@ class NodeEditor:
         with imgui.window(tag="popup", modal=True, pos=imgui.get_mouse_pos(local=False),
             no_resize=True, no_collapse=True, label="Add node", on_close=self.delete_popup):
 
-            imgui.add_input_text(label="Name", width=150)
+            imgui.add_input_text(label="Name", tag="popup_node_name", width=150)
 
             with imgui.group(horizontal=True):
-                imgui.add_button(label="Add")
+                imgui.add_button(label="Add", callback=self.add_node)
                 imgui.add_button(label="Cancel", callback=self.delete_popup)
 
     def popup(self, sender, data):

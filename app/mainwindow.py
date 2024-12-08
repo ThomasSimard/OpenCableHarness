@@ -1,6 +1,4 @@
 """Project manager window"""
-import time
-
 import json
 from json.decoder import JSONDecodeError
 
@@ -21,16 +19,20 @@ from app.projectwindow import ProjectWindow
 class MainWindow:
     """Let the user create and open projects"""
 
+    data_path = "data/"
+    recent_project_save_path = data_path + "recent_project.txt"
+    manufacturer_save_path = data_path + "manufacturer.txt"
+
     def __init__(self):
-        self.recent_project_list=[]
-        self.load_recent_project()
+        self.recent_project_list = self.load_save_file(self.recent_project_save_path)
+        self.manufacturer_list = self.load_save_file(self.manufacturer_save_path)
 
         with imgui.value_registry():
             imgui.add_string_value(tag="create_project_name")
 
         with imgui.window(label="Project Manager", tag="primary_window"):
             with imgui.menu_bar():
-                with imgui.menu(label="Project", tag="project_menu"):
+                with imgui.menu(label="Project manager", tag="project_menu"):
                     # TODO : do not let user open twice the same project
 
                     # Import project from the file explorer
@@ -61,30 +63,66 @@ class MainWindow:
                     imgui.add_input_text(label="name", source="create_project_name")
                     imgui.add_button(label="Create project", callback=self.create_project)
 
+                with imgui.menu(label="Part library"):
+                    imgui.add_text("Add part")
+                    imgui.add_input_text(label="name")
+
+                    imgui.add_text("Manufacturer list")
+                    imgui.add_listbox(self.manufacturer_list, tag="manufacturer_list")
+
+                    imgui.add_button(label="Select")
+
+                    imgui.add_input_text(label="manufacturer", tag="manufacturer_input_text")
+                    imgui.add_button(label="Add manufacturer",
+                        callback=self.update_manufacturer_save_file)
+
+                    imgui.add_input_int(label="pins",
+                        default_value=1, min_value=1, min_clamped=True)
+
+                    imgui.add_input_text(label="image")
+
+                    imgui.add_button(label="Add")
+
+                    imgui.add_separator()
+
+                    imgui.add_text("Part list")
+                    imgui.add_input_text(label="search")
+                    imgui.add_listbox([1, 2, 3, 4], num_items=20)
+
             with imgui.tab_bar(tag="project_tab_bar"):
                 pass
 
-    def update_recent_project(self, file_path):
+    def update_save_file(self, new_data, data_list, save_file, tag):
         "Update the save list of recent projects to save file"
 
-        if file_path not in self.recent_project_list:
-            self.recent_project_list.append(file_path)
+        if new_data not in data_list:
+            data_list.append(new_data)
 
-            with open("recent_project.txt", 'w', encoding='utf-8') as save_file:
-                save_file.write(json.dumps(self.recent_project_list))
+            with open(save_file, 'w', encoding='utf-8') as file:
+                file.write(json.dumps(data_list))
 
-            imgui.configure_item("recent_project_list", items=self.recent_project_list)
+            imgui.configure_item(tag, items=data_list)
 
-            self.open_project_tab(file_path)
+            return True
 
-    def load_recent_project(self):
+        return False
+
+    def update_manufacturer_save_file(self):
+        "Update manufacturer save file with a callback"
+        self.update_save_file(imgui.get_value("manufacturer_input_text"),
+            self.manufacturer_list, self.manufacturer_save_path, "manufacturer_list")
+
+    def load_save_file(self, save_file):
         """Load recent projects from the save file"""
 
-        with open("recent_project.txt", 'r', encoding='utf-8') as save_file:
-            try:
-                self.recent_project_list = json.loads(save_file.read())
-            except JSONDecodeError:
-                pass
+        try:
+            with open(save_file, 'r', encoding='utf-8') as save_file:
+                try:
+                    return json.loads(save_file.read())
+                except JSONDecodeError:
+                    return []
+        except FileNotFoundError:
+            return []
 
     def open_recent_project(self):
         "Open a recent project"
@@ -98,7 +136,8 @@ class MainWindow:
         elif name in self.recent_project_list:
             imgui.set_value("create_error_label", "Enter a different name than the other projects")
         else:
-            self.update_recent_project(name)
+            if self.update_save_file(name, self.recent_project_list, self.recent_project_save_path, "recent_project_list"):
+                self.open_project_tab(name)
 
     def open_project_tab(self, file_path):
         "Once a project is created or opened, open it in a new tab"

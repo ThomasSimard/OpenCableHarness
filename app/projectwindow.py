@@ -13,6 +13,11 @@ class ProjectWindow:
     def __init__(self):
         with imgui.group(horizontal=True):
             with imgui.group(width=150):
+                imgui.add_text("Project settings")
+                imgui.add_button(label="Save project")
+
+                imgui.add_separator()
+
                 with imgui.tab_bar():
                     with imgui.tab(label="Cable"):
                         imgui.add_text("Add cable")
@@ -26,9 +31,9 @@ class ProjectWindow:
 
                         imgui.add_text("Cable list")
                         imgui.add_listbox([1, 2, 3, 4])
-                    with imgui.tab(label="Connector"):
-                        pass
-                    with imgui.tab(label="BOM"):
-                        pass
 
-            NodeEditor()
+            with imgui.tab_bar():
+                with imgui.tab(label="Node editor"):
+                    NodeEditor()
+                with imgui.tab(label="BOM"):
+                    pass

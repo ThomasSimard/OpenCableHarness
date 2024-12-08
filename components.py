@@ -15,8 +15,10 @@ class Cable:
         return f"Cable : {self.name}, color : {self.color}, {self.gauge} awg"
 
 class Connector:
-    node = None
+    "Class representing a connector"
+    name = ""
     number_of_pins = 0
 
-    def __init__(self, node):
-        self.node = node
+    def __init__(self, name, number_of_pins):
+        self.name = name
+        self.name = number_of_pins
