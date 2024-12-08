@@ -7,11 +7,13 @@ class NodeEditor:
 
     node_list = [0, 1, 2]
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
+
         with imgui.handler_registry():
             imgui.add_mouse_click_handler(button=1, callback=self.popup)
 
-        with imgui.node_editor(tag="node_editor",
+        with imgui.node_editor(tag=f"{self.name}_node_editor",
             callback=self.link_nodes, delink_callback=self.delink_nodes):
 
             for node in self.node_list:
@@ -31,7 +33,7 @@ class NodeEditor:
         self.node_list.append(name)
 
         with imgui.node(label=f"Node: {name}", pos=imgui.get_mouse_pos(local=False),
-            parent="node_editor"):
+            parent=f"{self.name}_node_editor"):
 
             for i in range(1,3):
                 with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled):
@@ -72,12 +74,12 @@ class NodeEditor:
                 imgui.add_button(label="Add", callback=self.add_node)
                 imgui.add_button(label="Cancel", callback=self.delete_popup)
 
-    def popup(self, sender, data):
+    def popup(self):
         "Popup menu when user right click"
 
-        if imgui.is_item_hovered("node_editor"):
+        if imgui.is_item_hovered(f"{self.name}_node_editor"):
             hovered_node = None
-            for node in imgui.get_item_children("node_editor", slot=1):
+            for node in imgui.get_item_children(f"{self.name}_node_editor", slot=1):
                 if imgui.is_item_hovered(node):
                     hovered_node = node
 
