@@ -13,8 +13,8 @@ class NodeEditor:
         with imgui.handler_registry():
             imgui.add_mouse_click_handler(button=1, callback=self.popup)
 
-        with imgui.node_editor(tag=f"{self.name}_node_editor",
-            callback=self.link_nodes, delink_callback=self.delink_nodes):
+        with imgui.node_editor(tag=f"{self.name}_node_editor", minimap=True,
+            minimap_location=1, callback=self.link_nodes, delink_callback=self.delink_nodes):
 
             for node in self.node_list:
                 with imgui.node(label=f"Node: {node}"):
