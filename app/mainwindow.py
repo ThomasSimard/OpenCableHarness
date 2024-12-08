@@ -1,4 +1,5 @@
 """Project manager window"""
+import time
 
 import json
 from json.decoder import JSONDecodeError
@@ -27,9 +28,11 @@ class MainWindow:
         with imgui.value_registry():
             imgui.add_string_value(tag="create_project_name")
 
-        with imgui.window(label="Project Manager", tag="Primary Window"):
+        with imgui.window(label="Project Manager", tag="primary_window"):
             with imgui.menu_bar():
-                with imgui.menu(label="Project"):
+                with imgui.menu(label="Project", tag="project_menu"):
+                    # TODO : do not let user open twice the same project
+
                     # Import project from the file explorer
                     #imgui.add_file_dialog(
                     #    show=False, callback=callback, tag="file_dialog_id",
@@ -38,23 +41,28 @@ class MainWindow:
                     #imgui.add_button(label="Import project",
                     # callback=lambda: imgui.show_item("file_dialog_id"))
 
+                    #imgui.add_separator()
+
                     # Select a project from recent ones
                     if self.recent_project_list:
                         imgui.add_text("Recent project")
-                        imgui.add_listbox(items=self.recent_project_list, tag="recent_project_list")
+                        imgui.add_listbox(items=self.recent_project_list,
+                            tag="recent_project_list", num_items=10)
+
                         imgui.add_button(label="Open", callback=self.open_recent_project)
                     else:
                         imgui.add_text("No recent project!")
 
+                    imgui.add_separator()
+
                     # Create a new project
+                    imgui.add_text(tag="create_error_label", color=(250, 100, 120))
+
                     imgui.add_input_text(label="name", source="create_project_name")
                     imgui.add_button(label="Create project", callback=self.create_project)
 
             with imgui.tab_bar(tag="project_tab_bar"):
-                with imgui.tab(label="tab 1"):
-                    ProjectWindow()
-                with imgui.tab(label="tab 2"):
-                    ProjectWindow()
+                pass
 
     def update_recent_project(self, file_path):
         "Update the save list of recent projects to save file"
@@ -84,10 +92,21 @@ class MainWindow:
 
     def create_project(self):
         "Create a new project"
-        self.update_recent_project(imgui.get_value("create_project_name"))
+        name = imgui.get_value("create_project_name")
+        if name == "":
+            imgui.set_value("create_error_label", "Enter a name with at least one character")
+        elif name in self.recent_project_list:
+            imgui.set_value("create_error_label", "Enter a different name than the other projects")
+        else:
+            self.update_recent_project(name)
 
     def open_project_tab(self, file_path):
         "Once a project is created or opened, open it in a new tab"
 
-        with imgui.tab(label=file_path, parent="project_tab_bar"):
+        with imgui.tab(label=file_path, tag=file_path, parent="project_tab_bar"):
             ProjectWindow()
+
+        # Put the current tab to the open project
+        imgui.set_value("project_tab_bar", file_path)
+
+        # TODO : Close the menu bar
