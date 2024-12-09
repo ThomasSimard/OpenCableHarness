@@ -46,16 +46,27 @@ class MainWindow:
                     imgui.add_separator()
 
                     imgui.add_text("Part list")
-                    #imgui.add_input_text(label="search")
-                    imgui.add_listbox(self.part_library_save.data, tag="part_list", num_items=20)
 
-                    with imgui.drag_payload(parent="part_list",
+                    imgui.add_input_text(label="filter", tag="part_filter",
+                        callback=self.part_filter)
+
+                    imgui.add_listbox(self.part_library_save.data,
+                        tag="part_list", num_items=20, callback=self.part_selected)
+
+                    with imgui.drag_payload(parent="part_list", tag="part_list_payload",
                         drag_data=imgui.get_value("part_list"), payload_type="part"):
 
-                        imgui.add_text(imgui.get_value("part_list"))
+                        imgui.add_text(imgui.get_value("part_list"), tag="part_list_payload_label")
 
                 with imgui.menu(label="Help"):
                     pass
+
+    def part_filter(self, sender, value):
+        "Update listbox filter"
+
+    def part_selected(self, _, part):
+        imgui.configure_item("part_list_payload", drag_data=part)
+        imgui.set_value("part_list_payload_label", part)
 
     def add_part(self):
         "Add part to library"

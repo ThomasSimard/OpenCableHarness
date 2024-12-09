@@ -6,7 +6,17 @@ from app.mainwindow import MainWindow
 def main():
     "Main fonction of the app"
     imgui.create_context()
-    imgui.create_viewport(title='Open Cable Harness', width=600, height=400, min_width=600, min_height=400)
+
+    #imgui.show_documentation()
+    #imgui.show_style_editor()
+    #imgui.show_debug()
+    #imgui.show_about()
+    #imgui.show_metrics()
+    #imgui.show_font_manager()
+    #imgui.show_item_registry()
+
+    imgui.create_viewport(title='Open Cable Harness',
+        width=600, height=400, min_width=600, min_height=400)
 
     MainWindow()
 

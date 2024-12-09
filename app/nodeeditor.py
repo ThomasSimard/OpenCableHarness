@@ -2,10 +2,12 @@
 
 import dearpygui.dearpygui as imgui
 
+from components import Node
+
 class NodeEditor:
     "Editor section"
 
-    node_list = [0, 1, 2]
+    node_list = []
 
     def __init__(self, name):
         self.name = name
@@ -16,24 +18,35 @@ class NodeEditor:
         with imgui.node_editor(tag=f"{self.name}_node_editor", minimap=True,
             minimap_location=1, callback=self.link_nodes, delink_callback=self.delink_nodes):
 
-            for node in self.node_list:
-                with imgui.node(label=f"Node: {node}"):
-                    for i in range(1,3):
-                        with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled):
-                            imgui.add_input_text(label=f"cable {i}", width=150)
-                        with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled,
-                            attribute_type=imgui.mvNode_Attr_Output):
-
-                            imgui.add_input_text(label=f"cable {i}", width=150)
+            pass
 
     def add_node(self):
         "Add node to editor"
-        name = imgui.get_value("popup_node_name")
+        node = Node(imgui.get_value("popup_node_name"), imgui.get_value("popup_node_color"), None)
 
-        self.node_list.append(name)
+        self.node_list.append(node)
 
-        with imgui.node(label=f"Node: {name}", pos=imgui.get_mouse_pos(local=False),
-            parent=f"{self.name}_node_editor"):
+        with imgui.node(label=f"Node - {node.name}",
+            tag=f"node_{node.name}",pos=imgui.get_mouse_pos(local=False),
+            parent=f"{self.name}_node_editor") as node_id:
+
+            with imgui.theme() as item_theme:
+                with imgui.theme_component(imgui.mvAll):
+                    node.color[3] = 100
+                    imgui.add_theme_color(imgui.mvNodeCol_TitleBar,
+                        node.color, category=imgui.mvThemeCat_Nodes)
+
+                    node.color[3] = 150
+                    imgui.add_theme_color(imgui.mvNodeCol_TitleBarHovered,
+                        node.color, category=imgui.mvThemeCat_Nodes)
+
+                    node.color[3] = 255
+                    imgui.add_theme_color(imgui.mvNodeCol_TitleBarSelected,
+                        node.color, category=imgui.mvThemeCat_Nodes)
+
+                    # TODO : make node title easy to read with light color
+
+            imgui.bind_item_theme(node_id, item_theme)
 
             for i in range(1,3):
                 with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled):
@@ -48,6 +61,13 @@ class NodeEditor:
     def delete_popup(self):
         "Delete popup window"
         imgui.delete_item("popup")
+
+    def delete_node(self, node):
+        "Delete node"
+        print('hello')
+        #self.node_list.remove(node)
+
+        imgui.delete_item(node)
 
     def node_popup(self, node):
         "Popup when clicked on a node"
@@ -66,9 +86,14 @@ class NodeEditor:
     def node_editor_popup(self):
         "Popup when clicked on the node editor"
         with imgui.window(tag="popup", modal=True, pos=imgui.get_mouse_pos(local=False),
-            no_resize=True, no_collapse=True, label="Add node", on_close=self.delete_popup):
+            no_resize=True, no_collapse=True, height=275,
+            label="Add node", on_close=self.delete_popup):
 
-            imgui.add_input_text(label="Name", tag="popup_node_name", width=150)
+            imgui.add_input_text(label="Name", tag="popup_node_name",
+                default_value=f"X{len(self.node_list)}", width=150)
+
+            imgui.add_color_picker(tag="popup_node_color",
+                no_alpha=True, picker_mode=imgui.mvColorPicker_wheel)
 
             with imgui.group(horizontal=True):
                 imgui.add_button(label="Add", callback=self.add_node)
