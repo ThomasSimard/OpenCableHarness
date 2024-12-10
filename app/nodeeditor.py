@@ -2,7 +2,7 @@
 
 import dearpygui.dearpygui as imgui
 
-from components import Node
+from app.node import Node, CableNode
 
 class NodeEditor:
     "Editor section"
@@ -48,13 +48,7 @@ class NodeEditor:
 
             imgui.bind_item_theme(node_id, item_theme)
 
-            for i in range(1,3):
-                with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled):
-                    imgui.add_input_text(label=f"cable {i}", width=150)
-                with imgui.node_attribute(shape=imgui.mvNode_PinShape_TriangleFilled,
-                    attribute_type=imgui.mvNode_Attr_Output):
-
-                    imgui.add_input_text(label=f"cable {i}", width=150)
+            CableNode(node.name)
 
         self.delete_popup()
 
@@ -76,7 +70,6 @@ class NodeEditor:
 
             imgui.add_text("Node 1")
             imgui.add_input_text(label="Name", width=150)
-            imgui.add_input_int(label="Number of pins", width=150)
 
             with imgui.group(horizontal=True):
                 imgui.add_button(label="Edit")

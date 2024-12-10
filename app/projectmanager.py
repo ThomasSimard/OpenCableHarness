@@ -36,14 +36,11 @@ class ProjectManager:
         #imgui.add_separator()
 
         # Select a project from recent ones
-        if self.recent_project_save.data:
-            imgui.add_text("Recent project")
-            imgui.add_listbox(items=self.recent_project_save.data,
-                tag="recent_project_list", num_items=10)
+        imgui.add_text("Recent project")
+        imgui.add_listbox(items=self.recent_project_save.data,
+            tag="recent_project_list", num_items=10)
 
-            imgui.add_button(label="Open", callback=self.open_recent_project)
-        else:
-            imgui.add_text("No recent project!")
+        imgui.add_button(label="Open", callback=self.open_recent_project)
 
         imgui.add_separator()
 
@@ -76,6 +73,8 @@ class ProjectManager:
         if name == "":
             imgui.set_value("create_error_label", "Enter a name with at least one character")
         if self.recent_project_save.append(name):
+            imgui.set_value("create_error_label", "")
+
             self.last_session_project_save.append(name)
             imgui.configure_item("recent_project_list", items=self.recent_project_save.data)
             self.open_project_tab(name)

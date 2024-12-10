@@ -22,14 +22,3 @@ class Connector:
     def __init__(self, name, number_of_pins):
         self.name = name
         self.name = number_of_pins
-
-class Node:
-    "Class representing a node"
-    name = ""
-    color = None
-    part = None
-
-    def __init__(self, name, color, part):
-        self.name = name
-        self.color = color
-        self.part = part

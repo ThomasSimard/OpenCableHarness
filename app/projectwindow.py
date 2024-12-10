@@ -21,21 +21,27 @@ class ProjectWindow:
                 imgui.add_separator()
 
                 with imgui.tab_bar():
-                    with imgui.tab(label="Cable"):
-                        imgui.add_text("Add cable")
+                    with imgui.tab(label="Wire"):
+                        imgui.add_text("Add wire")
                         imgui.add_input_text(label="name")
 
                         imgui.add_color_picker(
                             no_alpha=True, picker_mode=imgui.mvColorPicker_wheel)
 
-                        imgui.add_input_int(label="awg")
+                        imgui.add_input_int(label="awg",
+                            default_value=20, min_value=1, min_clamped=True)
 
                         imgui.add_button(label="Add")
 
                         imgui.add_separator()
 
-                        imgui.add_text("Cable list")
-                        imgui.add_listbox([1, 2, 3, 4])
+                        imgui.add_text("Wire list")
+                        imgui.add_listbox([1, 2, 3, 4, 5], tag="wire_list", callback=self.wire_selected)
+
+                        with imgui.drag_payload(parent="wire_list", tag="wire_list_payload",
+                            drag_data=imgui.get_value("wire_list"), payload_type="wire"):
+
+                            imgui.add_text(imgui.get_value("wire_list"), tag="wire_list_payload_label")
 
             with imgui.tab_bar():
                 with imgui.tab(label="Node editor",
@@ -59,6 +65,10 @@ class ProjectWindow:
                                 with imgui.table_row():
                                     for j in range(0, 3):
                                         imgui.add_text(f"Row{i} Column{j}")
+
+    def wire_selected(self, _, wire):
+        imgui.configure_item("wire_list_payload", drag_data=wire)
+        imgui.set_value("wire_list_payload_label", wire)
 
     def part_drop(self, sender, part):
         "Make nodes from draging part"
