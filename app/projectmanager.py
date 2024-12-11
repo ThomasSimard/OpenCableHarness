@@ -1,4 +1,5 @@
 "Class for the project manager"
+import datetime
 
 import dearpygui.dearpygui as imgui
 
@@ -72,7 +73,7 @@ class ProjectManager:
         name = imgui.get_value("create_project_name")
         if name == "":
             imgui.set_value("create_error_label", "Enter a name with at least one character")
-        if self.recent_project_save.append(name):
+        elif self.recent_project_save.append(name):
             imgui.set_value("create_error_label", "")
 
             self.last_session_project_save.append(name)
@@ -84,10 +85,14 @@ class ProjectManager:
     def open_project_tab(self, name):
         "Once a project is created or opened, open it in a new tab"
 
-        with imgui.tab(label=name, tag=name, parent="project_tab_bar", closable=True):
-            ProjectWindow(name)
+        with imgui.tab(label=name, tag=name, parent="project_tab_bar"):
+            ProjectWindow(name, self.close_project_tab)
 
         # Put the current tab to the open project
         imgui.set_value("project_tab_bar", name)
 
         # TODO : Close the menu bar
+
+    def close_project_tab(self, sender, app_data, name):
+        self.last_session_project_save.remove(name)
+        imgui.delete_item(name)

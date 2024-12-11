@@ -17,7 +17,6 @@ class SaveFile:
 
     def load(self):
         """Load recent projects from the save file"""
-
         try:
             with open(self.get_path(), 'r', encoding='utf-8') as save_file:
                 try:
@@ -26,6 +25,14 @@ class SaveFile:
                     return []
         except FileNotFoundError:
             return []
+
+    def replace(self, new_data):
+        "Replace everything in the save file"
+
+        self.data = new_data
+
+        with open(self.get_path(), 'w', encoding='utf-8') as file:
+            file.write(json.dumps(self.data))
 
     def append(self, new_data):
         "Update the save list of recent projects to save file"

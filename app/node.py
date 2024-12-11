@@ -13,7 +13,35 @@ class Node:
         self.color = color
         self.part = part
 
+class PartNode:
+    "Part node"
+
+    def __init__(self, name):
+        self.parent = f"node_{name}"
+
+        with imgui.node_attribute():
+            imgui.add_text("Connection")
+
+        with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Output):
+            imgui.add_text("Out")
+
+        with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Static):
+            imgui.add_button(label="Flip")
+
+            input_text = imgui.add_input_text(label="Part", width=150,
+                        payload_type="part")
+
+            with imgui.theme() as theme_error:
+                with imgui.theme_component(imgui.mvAll):
+
+                    imgui.add_theme_color(imgui.mvThemeCol_FrameBg,
+                        (125, 50, 60), category=imgui.mvThemeCat_Core)
+
+        imgui.bind_item_theme(input_text, theme_error)
+
+
 class CableNode:
+    "Cable node"
     wire_list = []
 
     def __init__(self, name):

@@ -2,7 +2,7 @@
 
 import dearpygui.dearpygui as imgui
 
-from app.node import Node, CableNode
+from app.node import Node, CableNode, PartNode
 
 class NodeEditor:
     "Editor section"
@@ -48,7 +48,12 @@ class NodeEditor:
 
             imgui.bind_item_theme(node_id, item_theme)
 
-            CableNode(node.name)
+            node_type = imgui.get_value("node_type")
+
+            if node_type == "Cable":
+                CableNode(node.name)
+            if node_type == "Part":
+                PartNode(node.name)
 
         self.delete_popup()
 
@@ -79,14 +84,17 @@ class NodeEditor:
     def node_editor_popup(self):
         "Popup when clicked on the node editor"
         with imgui.window(tag="popup", modal=True, pos=imgui.get_mouse_pos(local=False),
-            no_resize=True, no_collapse=True, height=275,
+            no_resize=True, no_collapse=True,
             label="Add node", on_close=self.delete_popup):
 
             imgui.add_input_text(label="Name", tag="popup_node_name",
                 default_value=f"X{len(self.node_list)}", width=150)
 
-            imgui.add_color_picker(tag="popup_node_color",
-                no_alpha=True, picker_mode=imgui.mvColorPicker_wheel)
+            imgui.add_text("Type")
+            imgui.add_radio_button(items=["Cable", "Part"],
+                tag="node_type", default_value="Cable")
+
+            imgui.add_color_edit(label="Color", tag="popup_node_color", no_alpha=True)
 
             with imgui.group(horizontal=True):
                 imgui.add_button(label="Add", callback=self.add_node)
