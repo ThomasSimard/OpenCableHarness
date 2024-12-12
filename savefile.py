@@ -6,6 +6,33 @@ class SaveFile:
     "SaveFile object : a var that can be saved into a file"
     data_path = "data/"
 
+    class Data:
+        "Check data validity"
+        data_dict = dict()
+
+        def __init__(self, data, save):
+            self.data_dict = data
+            self.save = save
+
+        def add(self, name, data):
+            "Add data to the dict with checks"
+
+            if name == "":
+                return "Name cannot be empty!"
+            elif name in self.data_dict:
+                return "Name already exists!"
+            else:
+                self.data_dict.update({name: data})
+                self.save()
+
+            return ""
+
+        def remove(self, name):
+            "Remove data to the dict"
+
+            del self.data_dict[name]
+            self.save()
+
     def __init__(self, file_name):
         self.file_name = file_name
         self.data = self.load()

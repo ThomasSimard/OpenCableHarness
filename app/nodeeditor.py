@@ -2,7 +2,7 @@
 
 import dearpygui.dearpygui as imgui
 
-from app.node import Node, CableNode, PartNode
+from app.node import Node
 
 class NodeEditor:
     "Editor section"
@@ -22,38 +22,15 @@ class NodeEditor:
 
     def add_node(self):
         "Add node to editor"
-        node = Node(imgui.get_value("popup_node_name"), imgui.get_value("popup_node_color"), None)
+        node_type = imgui.get_value("node_type")
+        node_name = imgui.get_value("popup_node_name")
+        node_color = imgui.get_value("popup_node_color")
+
+        node = Node(f"{self.name}_node_editor",
+                node_name, node_color,
+                node_type, imgui.get_mouse_pos(local=False))
 
         self.node_list.append(node)
-
-        with imgui.node(label=f"Node - {node.name}",
-            tag=f"node_{node.name}",pos=imgui.get_mouse_pos(local=False),
-            parent=f"{self.name}_node_editor") as node_id:
-
-            with imgui.theme() as item_theme:
-                with imgui.theme_component(imgui.mvAll):
-                    node.color[3] = 100
-                    imgui.add_theme_color(imgui.mvNodeCol_TitleBar,
-                        node.color, category=imgui.mvThemeCat_Nodes)
-
-                    node.color[3] = 150
-                    imgui.add_theme_color(imgui.mvNodeCol_TitleBarHovered,
-                        node.color, category=imgui.mvThemeCat_Nodes)
-
-                    node.color[3] = 255
-                    imgui.add_theme_color(imgui.mvNodeCol_TitleBarSelected,
-                        node.color, category=imgui.mvThemeCat_Nodes)
-
-                    # TODO : make node title easy to read with light color
-
-            imgui.bind_item_theme(node_id, item_theme)
-
-            node_type = imgui.get_value("node_type")
-
-            if node_type == "Cable":
-                CableNode(node.name)
-            if node_type == "Part":
-                PartNode(node.name)
 
         self.delete_popup()
 

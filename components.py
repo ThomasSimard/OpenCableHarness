@@ -48,6 +48,7 @@ class Wire:
             imgui.add_table_column(label="Color", width=25, width_fixed=True)
             imgui.add_table_column(label="Name")
             imgui.add_table_column(label="Awg", width=25, width_fixed=True)
+            imgui.add_table_column(label="", width=25, width_fixed=True)
 
     def add_to_table(self, table_name):
         "Add wire to the table"

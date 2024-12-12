@@ -93,6 +93,8 @@ class ProjectManager:
 
         # TODO : Close the menu bar
 
-    def close_project_tab(self, sender, app_data, name):
+    def close_project_tab(self, _sender, _app_data, name):
+        "Close project tab"
+
         self.last_session_project_save.remove(name)
         imgui.delete_item(name)

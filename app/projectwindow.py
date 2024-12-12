@@ -13,35 +13,14 @@ class ProjectWindow:
     class ProjectInfo:
         "All the project info to be saved"
 
-        class Data:
-            "Check data validity"
-            data_dict = dict()
-
-            def __init__(self, data, save):
-                self.data_dict = data
-                self.save = save
-
-            def add(self, name, data):
-                "Add data to the dict with checks"
-
-                if name == "":
-                    return "Name cannot be empty!"
-                elif name in self.data_dict:
-                    return "Name already exists!"
-                else:
-                    self.data_dict.update({name: data})
-                    self.save()
-
-                return ""
-
         def __init__(self, name):
             self.name = name
             self.project_save = SaveFile(f"projects/{self.name}")
 
             if len(self.project_save.data) > 0:
-                self.wires = self.Data(self.project_save.data[0], self.save)
+                self.wires = SaveFile.Data(self.project_save.data[0], self.save)
             else:
-                self.wires = self.Data({}, self.save)
+                self.wires = SaveFile.Data({}, self.save)
 
         def save(self):
             "Save project info"

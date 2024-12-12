@@ -1,5 +1,4 @@
 """Node for the node editor"""
-
 import dearpygui.dearpygui as imgui
 
 from components import Wire
@@ -8,18 +7,33 @@ class Node:
     "Class representing a node"
     name = ""
     color = None
-    part = None
+    node_type = ""
+    position = ""
 
-    def __init__(self, name, color, part):
+    wire_list = []
+
+    def __init__(self, parent, name, color, node_type, position):
         self.name = name
         self.color = color
-        self.part = part
 
-class PartNode:
-    "Part node"
+        self.node_type = node_type
+        self.position = position
 
-    def __init__(self, name):
-        self.parent = f"node_{name}"
+        self.wire_list = []
+
+        with imgui.node(label=f"{self.node_type} - {self.name}",
+            tag=f"node_{self.name}",
+            pos=self.position,
+            parent=parent,
+            drop_callback=self.callback_wire_drop, payload_type="wire"):
+
+            if self.node_type == "Cable":
+                self.cable_attribute()
+            elif self.node_type == "Part":
+                self.part_attribute()
+
+    def part_attribute(self):
+        "Attributes of the part node"
 
         with imgui.node_attribute():
             imgui.add_text("Connection")
@@ -39,16 +53,12 @@ class PartNode:
                     imgui.add_theme_color(imgui.mvThemeCol_FrameBg,
                         (125, 50, 60), category=imgui.mvThemeCat_Core)
 
-        imgui.bind_item_theme(input_text, theme_error)
+            imgui.bind_item_theme(input_text, theme_error)
 
+            Wire.table_header(f"node_{self.name}")
 
-class CableNode:
-    "Cable node"
-    wire_list = []
-
-    def __init__(self, name):
-        self.parent = f"node_{name}"
-        imgui.configure_item(self.parent, drop_callback=self.drop, payload_type="wire")
+    def cable_attribute(self):
+        "Attributes of the cable node"
 
         with imgui.node_attribute():
             imgui.add_text("In")
@@ -57,20 +67,17 @@ class CableNode:
             imgui.add_text("Out")
 
         with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Static):
-            Wire.table_header(f"node_{name}")
+            Wire.table_header(f"node_{self.name}")
 
     def add_wire(self, wire):
-        if wire not in self.wire_list:
-            self.wire_list.append(wire)
+        with imgui.node_attribute(parent=f"node_{self.name}",
+            attribute_type=imgui.mvNode_Attr_Static):
 
-            with imgui.node_attribute(parent=self.parent,
-                attribute_type=imgui.mvNode_Attr_Static):
+            wire.add_to_table(f"node_{self.name}")
 
-                wire.add_to_table(self.parent)
+            #imgui.add_button(label="x", callback=self.remove_wire)
 
-                #imgui.add_button(label="x", callback=self.remove_wire)
-
-    def remove_wire(self, sender):
+    def callback_remove_wire(self, sender):
         parent = imgui.get_item_parent(sender)
         wire = imgui.get_value(imgui.get_item_children(parent, slot=1)[1])
 
@@ -79,5 +86,12 @@ class CableNode:
         node_attribute = imgui.get_item_parent(parent)
         imgui.delete_item(node_attribute)
 
-    def drop(self, sender, wire):
+    def callback_wire_drop(self, _sender, wire):
+        "Get when a wire is dropped on to the node"
+        if wire in self.wire_list:
+            return
+
+        self.wire_list.append(wire)
+
+        #if self.node_type == "Cable":
         self.add_wire(wire)
