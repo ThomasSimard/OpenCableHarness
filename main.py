@@ -26,7 +26,11 @@ def main():
     imgui.set_primary_window("primary_window", True)
 
     imgui.start_dearpygui()
-    imgui.destroy_context()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        imgui.destroy_context()

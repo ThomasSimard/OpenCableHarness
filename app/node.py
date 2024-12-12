@@ -2,6 +2,8 @@
 
 import dearpygui.dearpygui as imgui
 
+from components import Wire
+
 class Node:
     "Class representing a node"
     name = ""
@@ -46,6 +48,7 @@ class CableNode:
 
     def __init__(self, name):
         self.parent = f"node_{name}"
+        imgui.configure_item(self.parent, drop_callback=self.drop, payload_type="wire")
 
         with imgui.node_attribute():
             imgui.add_text("In")
@@ -54,31 +57,18 @@ class CableNode:
             imgui.add_text("Out")
 
         with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Static):
-            imgui.add_button(label="Add wire", callback=self.add_wire)
+            Wire.table_header(f"node_{name}")
 
-    def add_wire(self, wire=""):
-        self.wire_list.append(wire)
+    def add_wire(self, wire):
+        if wire not in self.wire_list:
+            self.wire_list.append(wire)
 
-        with imgui.node_attribute(parent=self.parent,
-            attribute_type=imgui.mvNode_Attr_Static):
+            with imgui.node_attribute(parent=self.parent,
+                attribute_type=imgui.mvNode_Attr_Static):
 
-            with imgui.group(horizontal=True):
-                input_text = imgui.add_input_text(width=150,
-                    callback=self.text_changed,
-                    drop_callback=self.drop, payload_type="wire")
-
-                with imgui.theme() as theme_error:
-                    with imgui.theme_component(imgui.mvAll):
-
-                        imgui.add_theme_color(imgui.mvThemeCol_FrameBg,
-                            (125, 50, 60), category=imgui.mvThemeCat_Core)
-
-                imgui.bind_item_theme(input_text, theme_error)
+                wire.add_to_table(self.parent)
 
                 #imgui.add_button(label="x", callback=self.remove_wire)
-
-    def text_changed(self, sender, value):
-        print(value)
 
     def remove_wire(self, sender):
         parent = imgui.get_item_parent(sender)
@@ -90,4 +80,4 @@ class CableNode:
         imgui.delete_item(node_attribute)
 
     def drop(self, sender, wire):
-        imgui.set_value(sender, wire)
+        self.add_wire(wire)
