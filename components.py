@@ -23,13 +23,9 @@ class Wire:
         self.color = color
         self.gauge = gauge
 
-    def to_json(self):
+    def data(self):
         "Put the object in json format"
-        return json.dumps(
-            self,
-            default=lambda o: o.__dict__, 
-            sort_keys=True,
-            indent=4)
+        return (self.color, self.gauge)
 
     def __str__(self):
         return f"Wire : {self.name}, color : {self.color}, {self.gauge} awg"

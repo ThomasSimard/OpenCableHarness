@@ -7,10 +7,10 @@ from app.node import Node
 class NodeEditor:
     "Editor section"
 
-    node_list = []
-
-    def __init__(self, name):
+    def __init__(self, name, save):
         self.name = name
+        self.save = save
+        Node.save = save
 
         with imgui.handler_registry():
             imgui.add_mouse_click_handler(button=1, callback=self.popup)
@@ -18,19 +18,36 @@ class NodeEditor:
         with imgui.node_editor(tag=f"{self.name}_node_editor", minimap=True,
             minimap_location=1, callback=self.link_nodes, delink_callback=self.delink_nodes):
 
-            pass
+            with imgui.node(label="Home node", draggable=False):
+                with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Static):
+                    imgui.add_text("Refference node!")
 
-    def add_node(self):
+            # Load nodes from save file
+            for node in self.save["node"]:
+                node = Node.from_json(f"{self.name}_node_editor", node, self.save)
+
+    def add_node(self, _sender, _data, pos):
         "Add node to editor"
+        # Arguments
         node_type = imgui.get_value("node_type")
         node_name = imgui.get_value("popup_node_name")
         node_color = imgui.get_value("popup_node_color")
 
-        node = Node(f"{self.name}_node_editor",
-                node_name, node_color,
-                node_type, imgui.get_mouse_pos(local=False))
+        # Position
+        ref_node = imgui.get_item_children(f"{self.name}_node_editor", slot=1)[0]
 
-        self.node_list.append(node)
+        ref_screen_pos = imgui.get_item_rect_min(ref_node)
+        ref_grid_pos = imgui.get_item_pos(ref_node)
+
+        pos[0] = pos[0] - (ref_screen_pos[0] - 8) + ref_grid_pos[0]
+        pos[1] = pos[1] - (ref_screen_pos[1] - 8) + ref_grid_pos[1]
+
+        # Create node
+        node = Node(self.name,
+            node_name, node_color,
+            node_type, pos, dict())
+
+        self.save.update("node", node_name, node.data())
 
         self.delete_popup()
 
@@ -65,7 +82,7 @@ class NodeEditor:
             label="Add node", on_close=self.delete_popup):
 
             imgui.add_input_text(label="Name", tag="popup_node_name",
-                default_value=f"X{len(self.node_list)}", width=150)
+                default_value=f"X{len(self.save["node"])}", width=150)
 
             imgui.add_text("Type")
             imgui.add_radio_button(items=["Cable", "Part"],
@@ -74,7 +91,9 @@ class NodeEditor:
             imgui.add_color_edit(label="Color", tag="popup_node_color", no_alpha=True)
 
             with imgui.group(horizontal=True):
-                imgui.add_button(label="Add", callback=self.add_node)
+                imgui.add_button(label="Add",
+                    callback=self.add_node, user_data=imgui.get_mouse_pos(local=False))
+
                 imgui.add_button(label="Cancel", callback=self.delete_popup)
 
     def popup(self):

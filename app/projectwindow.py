@@ -12,7 +12,7 @@ class ProjectWindow:
 
     def __init__(self, name, close_project_tab):
         self.name = name
-        self.save = DataSave(f"projects/{self.name}", ["wire", "part", "cable"])
+        self.save = DataSave(f"projects/{self.name}.json", ["wire", "node"])
 
         with imgui.group(horizontal=True):
             with imgui.group(width=150):
@@ -28,7 +28,7 @@ class ProjectWindow:
                 with imgui.tab(label="Node editor",
                     drop_callback=self.part_drop, payload_type="part"):
 
-                    NodeEditor(self.name)
+                    NodeEditor(self.name, self.save)
                 with imgui.tab(label="BOM"):
                     with imgui.child_window():
                         self.bill_of_material()

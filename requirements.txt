@@ -1,1 +1,1 @@
-dearpygui
+dearpygui==2.0.0

@@ -47,6 +47,7 @@ class DataSave:
 
     def update(self, slot, name, updated_data):
         "Replace everything in the save file to update the data dict"
+
         #Error check
         if slot not in self.slots:
             raise SyntaxError()

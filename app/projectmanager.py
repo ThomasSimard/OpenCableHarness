@@ -5,25 +5,16 @@ from datasave import DataSave
 
 from app.projectwindow import ProjectWindow
 
-#def callback(sender, app_data):
-#    print('OK was clicked.')
-#    print("Sender: ", sender)
-#    print("App Data: ", app_data)
-
-#def cancel_callback(sender, app_data):
-#    print('Cancel was clicked.')
-#    print("Sender: ", sender)
-#    print("App Data: ", app_data)
-
 class ProjectManager:
     "Project Manager menu"
 
     def __init__(self):
-        self.save = DataSave("project_manager_save.txt", ["recent", "last_session"])
+        self.save = DataSave("project_manager_save.json", ["recent", "last_session"])
 
         self.open_last_session_project()
 
         # Import project from the file explorer
+        # TODO Add this fonctionnality
         #imgui.add_file_dialog(
         #    show=False, callback=callback, tag="file_dialog_id",
         #    cancel_callback=cancel_callback, width=700 ,height=400)
@@ -38,7 +29,7 @@ class ProjectManager:
         imgui.add_listbox(items=[key for key in self.save["recent"]],
             tag="recent_project_list", num_items=10)
 
-        imgui.add_button(label="Open", callback=self.open_recent_project)
+        imgui.add_menu_item(label="Open", callback=self.open_recent_project)
 
         imgui.add_separator()
 
@@ -46,7 +37,7 @@ class ProjectManager:
         imgui.add_text(tag="create_error_label", color=(250, 100, 120))
 
         imgui.add_input_text(label="name", source="create_project_name")
-        imgui.add_button(label="Create project", callback=self.create_project)
+        imgui.add_menu_item(label="Create project", callback=self.create_project)
 
     def open_last_session_project(self):
         "Open projects from last session"
@@ -79,6 +70,10 @@ class ProjectManager:
 
     def open_project_tab(self, name):
         "Once a project is created or opened, open it in a new tab"
+        # Reset text input
+        imgui.set_value("create_project_name", "")
+
+        # Save open tabs
         self.save.update("last_session", name, None)
 
         with imgui.tab(label=name, tag=name, parent="project_tab_bar"):
@@ -86,8 +81,6 @@ class ProjectManager:
 
         # Put the current tab to the open project
         imgui.set_value("project_tab_bar", name)
-
-        # TODO : Close the menu bar
 
     def close_project_tab(self, _sender, _app_data, name):
         "Close project tab"

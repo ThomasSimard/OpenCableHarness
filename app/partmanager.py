@@ -4,7 +4,7 @@ from datasave import DataSave
 
 class PartManager:
     def __init__(self):
-        self.save = DataSave("part_manager.txt", ["manufacturer", "part"])
+        self.save = DataSave("part_manager.json", ["manufacturer", "part"])
 
         imgui.add_text("Add part")
         imgui.add_input_text(label="name", tag="part_name")
