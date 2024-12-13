@@ -1,7 +1,7 @@
 """Project window"""
 import dearpygui.dearpygui as imgui
 
-from savefile import SaveFile
+from datasave import DataSave
 
 from app.nodeeditor import NodeEditor
 
@@ -10,27 +10,9 @@ from components import Wire
 class ProjectWindow:
     "Tab to edit the project"
 
-    class ProjectInfo:
-        "All the project info to be saved"
-
-        def __init__(self, name):
-            self.name = name
-            self.project_save = SaveFile(f"projects/{self.name}")
-
-            if len(self.project_save.data) > 0:
-                self.wires = SaveFile.Data(self.project_save.data[0], self.save)
-            else:
-                self.wires = SaveFile.Data({}, self.save)
-
-        def save(self):
-            "Save project info"
-            data = (self.wires.data_dict, 0)
-
-            self.project_save.replace(data)
-
     def __init__(self, name, close_project_tab):
         self.name = name
-        self.project_info = self.ProjectInfo(self.name)
+        self.save = DataSave(f"projects/{self.name}", ["wire", "part", "cable"])
 
         with imgui.group(horizontal=True):
             with imgui.group(width=150):
@@ -106,11 +88,11 @@ class ProjectWindow:
                         imgui.add_text(f"Row{i} Column{j}")
 
     def load_wires(self):
-        for wire_name in self.project_info.wires.data_dict:
+        for wire_name in self.save.data["wire"]:
             wire = Wire(
                 wire_name,
-                self.project_info.wires.data_dict[wire_name][0],
-                self.project_info.wires.data_dict[wire_name][1])
+                self.save.data["wire"][wire_name][0],
+                self.save.data["wire"][wire_name][1])
 
             wire.add_to_table(self.name)
 
@@ -120,7 +102,7 @@ class ProjectWindow:
         gauge = imgui.get_value(f"{self.name}_input_awg")
 
         wire = Wire(name, color, gauge)
-        status = self.project_info.wires.add(name, (color, gauge))
+        status = self.save.update("wire", name, (color, gauge))
 
         if status == "":
             wire.add_to_table(self.name)

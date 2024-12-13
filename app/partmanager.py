@@ -1,17 +1,16 @@
 import dearpygui.dearpygui as imgui
 
-from savefile import SaveFile
+from datasave import DataSave
 
 class PartManager:
     def __init__(self):
-        self.manufacturer_save = SaveFile("manufacturer.txt")
-        self.part_library_save = SaveFile("part_library.txt")
+        self.save = DataSave("part_manager.txt", ["manufacturer", "part"])
 
         imgui.add_text("Add part")
         imgui.add_input_text(label="name", tag="part_name")
 
         imgui.add_text("Manufacturer list")
-        imgui.add_listbox(self.manufacturer_save.data, tag="manufacturer_list")
+        imgui.add_listbox(self.save.get_list("manufacturer"), tag="manufacturer_list")
 
         imgui.add_button(label="Select")
 
@@ -33,7 +32,7 @@ class PartManager:
         imgui.add_input_text(label="filter", tag="part_filter",
             callback=self.part_filter)
 
-        imgui.add_listbox(self.part_library_save.data,
+        imgui.add_listbox(self.save.get_list("part"),
             tag="part_list", num_items=20, callback=self.part_selected)
 
         with imgui.drag_payload(parent="part_list", tag="part_list_payload",
@@ -50,13 +49,19 @@ class PartManager:
 
     def add_part(self):
         "Add part to library"
-        part = (imgui.get_value("part_name"),
-            imgui.get_value("manufacturer_list"), imgui.get_value("connector_pin"))
+        part_name = imgui.get_value("part_name")
+        part_manufacturer = imgui.get_value("manufacturer_list")
+        part_pin = imgui.get_value("connector_pin")
 
-        if self.part_library_save.append(part):
-            imgui.configure_item("part_list", items=self.part_library_save.data)
+        status = self.save.update("part", part_name, (part_manufacturer, part_pin))
+
+        if status == "":
+            imgui.configure_item("part_list", items=self.save.get_list("part"))
 
     def update_manufacturer_save_file(self):
         "Update manufacturer save file with a callback"
-        if self.manufacturer_save.append(imgui.get_value("manufacturer_input_text")):
-            imgui.configure_item("manufacturer_list", items=self.manufacturer_save.data)
+        status = self.save.update("manufacturer", imgui.get_value("manufacturer_input_text"), None)
+
+        if status == "":
+            imgui.configure_item("manufacturer_list",
+                items=self.save.get_list("manufacturer"))

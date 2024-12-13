@@ -3,6 +3,7 @@ import dearpygui.dearpygui as imgui
 
 from app.mainwindow import MainWindow
 
+
 def main():
     "Main fonction of the app"
     imgui.create_context()
@@ -30,7 +31,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+        imgui.destroy_context()
     except KeyboardInterrupt:
-        pass
-    finally:
         imgui.destroy_context()

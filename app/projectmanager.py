@@ -1,9 +1,7 @@
 "Class for the project manager"
-import datetime
-
 import dearpygui.dearpygui as imgui
 
-from savefile import SaveFile
+from datasave import DataSave
 
 from app.projectwindow import ProjectWindow
 
@@ -21,8 +19,7 @@ class ProjectManager:
     "Project Manager menu"
 
     def __init__(self):
-        self.recent_project_save = SaveFile("recent_project.txt")
-        self.last_session_project_save = SaveFile("last_session_project.txt")
+        self.save = DataSave("project_manager_save.txt", ["recent", "last_session"])
 
         self.open_last_session_project()
 
@@ -38,7 +35,7 @@ class ProjectManager:
 
         # Select a project from recent ones
         imgui.add_text("Recent project")
-        imgui.add_listbox(items=self.recent_project_save.data,
+        imgui.add_listbox(items=[key for key in self.save["recent"]],
             tag="recent_project_list", num_items=10)
 
         imgui.add_button(label="Open", callback=self.open_recent_project)
@@ -53,37 +50,36 @@ class ProjectManager:
 
     def open_last_session_project(self):
         "Open projects from last session"
-
-        for project in self.last_session_project_save.data:
+        for project in self.save["last_session"]:
             self.open_project_tab(project)
 
     def open_recent_project(self):
         "Open a recent project"
         name = imgui.get_value("recent_project_list")
 
-        if name in self.last_session_project_save.data:
+        if name in self.save.data["last_session"]:
             imgui.set_value("project_tab_bar", name)
             return
 
-        self.last_session_project_save.append(name)
         self.open_project_tab(name)
 
     def create_project(self):
         "Create a new project"
         name = imgui.get_value("create_project_name")
-        if name == "":
-            imgui.set_value("create_error_label", "Enter a name with at least one character")
-        elif self.recent_project_save.append(name):
-            imgui.set_value("create_error_label", "")
 
-            self.last_session_project_save.append(name)
-            imgui.configure_item("recent_project_list", items=self.recent_project_save.data)
+        status = self.save.update("recent", name, None)
+
+        imgui.set_value("create_error_label", status)
+
+        if status == "":
+            imgui.configure_item("recent_project_list",
+                items=[key for key in self.save["recent"]])
+
             self.open_project_tab(name)
-        else:
-            imgui.set_value("create_error_label", "Enter a different name than the other projects")
 
     def open_project_tab(self, name):
         "Once a project is created or opened, open it in a new tab"
+        self.save.update("last_session", name, None)
 
         with imgui.tab(label=name, tag=name, parent="project_tab_bar"):
             ProjectWindow(name, self.close_project_tab)
@@ -96,5 +92,5 @@ class ProjectManager:
     def close_project_tab(self, _sender, _app_data, name):
         "Close project tab"
 
-        self.last_session_project_save.remove(name)
+        self.save.remove("last_session", name)
         imgui.delete_item(name)
