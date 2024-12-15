@@ -19,8 +19,8 @@ class MainWindow:
                 with imgui.menu(label="Project manager", tag="project_menu"):
                     ProjectManager()
 
-                with imgui.menu(label="Part library"):
-                    PartManager()
+                #with imgui.menu(label="Part library"):
+                    #PartManager()
 
                 with imgui.menu(label="Help"):
                     pass

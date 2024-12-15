@@ -9,7 +9,7 @@ class ProjectManager:
     "Project Manager menu"
 
     def __init__(self):
-        self.save = DataSave("project_manager_save.json", ["recent", "last_session"])
+        self.save = DataSave("project_manager_save.json")
 
         self.open_last_session_project()
 
@@ -26,7 +26,7 @@ class ProjectManager:
 
         # Select a project from recent ones
         imgui.add_text("Recent project")
-        imgui.add_listbox(items=[key for key in self.save["recent"]],
+        imgui.add_listbox(items=self.save.get_children("recent"),
             tag="recent_project_list", num_items=10)
 
         imgui.add_menu_item(label="Open", callback=self.open_recent_project)
@@ -41,14 +41,18 @@ class ProjectManager:
 
     def open_last_session_project(self):
         "Open projects from last session"
-        for project in self.save["last_session"]:
+        for project in self.save.get_children("last_session"):
             self.open_project_tab(project)
 
     def open_recent_project(self):
         "Open a recent project"
         name = imgui.get_value("recent_project_list")
 
-        if name in self.save.data["last_session"]:
+        # Nothing selected
+        if name == "":
+            return
+
+        if self.save["last_session", name]:
             imgui.set_value("project_tab_bar", name)
             return
 
@@ -58,13 +62,14 @@ class ProjectManager:
         "Create a new project"
         name = imgui.get_value("create_project_name")
 
-        status = self.save.update("recent", name, None)
-
+        status = self.save.check_tag_integrity(f"recent_{name}")
         imgui.set_value("create_error_label", status)
 
         if status == "":
+            self.save["recent", name] = True
+
             imgui.configure_item("recent_project_list",
-                items=[key for key in self.save["recent"]])
+                items=self.save.get_children("recent"))
 
             self.open_project_tab(name)
 
@@ -74,7 +79,7 @@ class ProjectManager:
         imgui.set_value("create_project_name", "")
 
         # Save open tabs
-        self.save.update("last_session", name, None)
+        self.save["last_session", name] = None
 
         with imgui.tab(label=name, tag=name, parent="project_tab_bar"):
             ProjectWindow(name, self.close_project_tab)
@@ -85,5 +90,5 @@ class ProjectManager:
     def close_project_tab(self, _sender, _app_data, name):
         "Close project tab"
 
-        self.save.remove("last_session", name)
+        del self.save["last_session", name]
         imgui.delete_item(name)

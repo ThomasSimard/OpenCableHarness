@@ -12,7 +12,7 @@ class ProjectWindow:
 
     def __init__(self, name, close_project_tab):
         self.name = name
-        self.save = DataSave(f"projects/{self.name}.json", ["wire", "node"])
+        self.save = DataSave(f"projects/{self.name}.json")
 
         with imgui.group(horizontal=True):
             with imgui.group(width=150):
@@ -88,11 +88,11 @@ class ProjectWindow:
                         imgui.add_text(f"Row{i} Column{j}")
 
     def load_wires(self):
-        for wire_name in self.save.data["wire"]:
+        for wire_name in self.save.get_children("wire"):
             wire = Wire(
                 wire_name,
-                self.save.data["wire"][wire_name][0],
-                self.save.data["wire"][wire_name][1])
+                self.save["wire", wire_name][0],
+                self.save["wire", wire_name][1])
 
             wire.add_to_table(self.name)
 
@@ -102,12 +102,13 @@ class ProjectWindow:
         gauge = imgui.get_value(f"{self.name}_input_awg")
 
         wire = Wire(name, color, gauge)
-        status = self.save.update("wire", name, (color, gauge))
+
+        status = self.save.check_tag_integrity(f"wire_{name}")
+        imgui.set_value(f"{self.name}_wire_error_label", status)
 
         if status == "":
+            self.save["wire", name] = (color, gauge)
             wire.add_to_table(self.name)
-
-        imgui.set_value(f"{self.name}_wire_error_label", status)
 
     def part_drop(self, sender, part):
         "Make nodes from draging part"

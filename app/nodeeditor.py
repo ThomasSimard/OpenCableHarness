@@ -10,7 +10,6 @@ class NodeEditor:
     def __init__(self, name, save):
         self.name = name
         self.save = save
-        Node.save = save
 
         with imgui.handler_registry():
             imgui.add_mouse_click_handler(button=1, callback=self.popup)
@@ -23,7 +22,7 @@ class NodeEditor:
                     imgui.add_text("Refference node!")
 
             # Load nodes from save file
-            for node in self.save["node"]:
+            for node in self.save.get_children("node"):
                 node = Node.from_json(f"{self.name}_node_editor", node, self.save)
 
     def add_node(self, _sender, _data, pos):
@@ -47,7 +46,7 @@ class NodeEditor:
             node_name, node_color,
             node_type, pos, dict())
 
-        self.save.update("node", node_name, node.data())
+        self.save["node", node_name] = node.data()
 
         self.delete_popup()
 
@@ -82,7 +81,7 @@ class NodeEditor:
             label="Add node", on_close=self.delete_popup):
 
             imgui.add_input_text(label="Name", tag="popup_node_name",
-                default_value=f"X{len(self.save["node"])}", width=150)
+                default_value=f"X{len(self.save.get_children("node"))}", width=150)
 
             imgui.add_text("Type")
             imgui.add_radio_button(items=["Cable", "Part"],

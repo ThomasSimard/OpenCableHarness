@@ -9,6 +9,7 @@ class Node:
     color = None
     node_type = ""
     position = ""
+    lenght = 0
 
     wires = dict()
 
@@ -46,10 +47,10 @@ class Node:
         "Create class from json"
 
         return cls(parent, name,
-            save["node"][name][0],
-            save["node"][name][1],
-            save["node"][name][2],
-            save["node"][name][3])
+            save["node", name][0],
+            save["node", name][1],
+            save["node", name][2],
+            save["node", name][3])
 
     def data(self):
         "Class information without the name"

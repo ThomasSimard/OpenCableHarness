@@ -1,38 +1,77 @@
-"Save data list as json and load them"
+"Save data dict as json and load them"
 import os
 
 import json
 from json.decoder import JSONDecodeError
 
 class DataSave:
-    "SaveFile object : a var that can be saved into a file"
+    "Save file with tags"
+
     data_path = "data/"
+    data = dict()
 
-    slots = dict()
-    data = dict(dict())
-
-    def __init__(self, file_name, slots):
+    def __init__(self, file_name):
         self.file_name = file_name
-        self.slots = slots
-
         self.data = self.load()
 
-        if self.data == dict():
-            for slot in slots:
-                self.data[slot] = dict()
+    def __getitem__(self, keys):
+        return self.get_item(self.get_tag(keys))
 
-    def __getitem__(self, slot):
-        return self.data.get(slot)
+    def __setitem__(self, keys, new_data):
+        self.set_item(self.get_tag(keys), new_data)
+
+    def __delitem__(self, keys):
+        self.del_item(self.get_tag(keys))
+
+    def get_item(self, tag):
+        "Get dictionnary item"
+        return self.data.get(tag)
+
+    def set_item(self, tag, new_value):
+        "Set dictionnary item"
+        self.data[tag] = new_value
+
+        self.rewrite_save_file()
+
+    def del_item(self, tag):
+        "Delete dictionnary item"
+        del self.data[tag]
+
+        self.rewrite_save_file()
+
+    def check_tag_integrity(self, tag):
+        "Check tag integrity"
+
+        if tag[-1] == "_":
+            return "Name cannot be empty!"
+        if self.get_item(tag):
+            return "Name already exist!"
+
+        return ""
+
+    def get_tag(self, keys):
+        "Turn a tuple to a dictionary tag"
+
+        if isinstance(keys, tuple):
+            return "_".join(keys)
+        else:
+            return keys
 
     def get_path(self):
         "Return path from file name"
 
         return DataSave.data_path + self.file_name
 
-    def get_list(self, slot):
-        "Return a list of the names"
+    def get_children(self, prefix_tag):
+        "Return a list of the tags"
+        children = list()
+        prefix_tag = prefix_tag + "_"
 
-        return [key for key in self.data.get(slot)]
+        for tag in self.data.keys():
+            if tag.startswith(prefix_tag):
+                children.append(tag.removeprefix(prefix_tag))
+
+        return children
 
     def load(self):
         """Load recent projects from the save file"""
@@ -45,29 +84,9 @@ class DataSave:
         except FileNotFoundError:
             return dict()
 
-    def update(self, slot, name, updated_data):
-        "Replace everything in the save file to update the data dict"
-
-        #Error check
-        if slot not in self.slots:
-            raise SyntaxError()
-
-        #Check data integrity
-        if name == "":
-            return "Name cannot be empty!"
-        if name in self.data[slot]:
-            return "Name already exists!"
-
-        #Update data
-        self.data[slot][name] = updated_data
-
-        self.rewrite_save_file()
-
-        return ""
-
-    def remove(self, slot, name):
+    def remove(self, key):
         "Update the save list of recent projects to save file"
-        del self.data[slot][name]
+        del self.data[key]
 
         self.rewrite_save_file()
 
