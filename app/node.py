@@ -1,5 +1,5 @@
 """Node for the node editor"""
-import dearpygui.dearpygui as imgui
+import dearpygui.dearpygui as dpg
 
 from components import Wire
 
@@ -27,7 +27,7 @@ class Node:
 
         self.is_fliped = False
 
-        with imgui.node(label=f"{self.node_type} - {self.name}",
+        with dpg.node(label=f"{self.node_type} - {self.name}",
             tag=f"{self.parent}_node_{self.name}",
             pos=self.position,
             parent=f"{self.parent}_node_editor",
@@ -58,23 +58,23 @@ class Node:
 
     def part_attribute(self):
         "Attributes of the part node"
-        with imgui.node_attribute(tag=f"{self.parent}_{self.name}_link",
-            attribute_type=imgui.mvNode_Attr_Output):
-            imgui.add_text("Connection")
+        with dpg.node_attribute(tag=f"{self.parent}_{self.name}_link",
+            attribute_type=dpg.mvNode_Attr_Output):
+            dpg.add_text("Connection")
 
-        with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Static):
-            imgui.add_button(label="Flip", callback=self.callback_flip_node)
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
+            dpg.add_button(label="Flip", callback=self.callback_flip_node)
 
-            input_text = imgui.add_input_text(label="Part", width=150,
+            input_text = dpg.add_input_text(label="Part", width=150,
                         payload_type="part")
 
-            with imgui.theme() as theme_error:
-                with imgui.theme_component(imgui.mvAll):
+            with dpg.theme() as theme_error:
+                with dpg.theme_component(dpg.mvAll):
 
-                    imgui.add_theme_color(imgui.mvThemeCol_FrameBg,
-                        (125, 50, 60), category=imgui.mvThemeCat_Core)
+                    dpg.add_theme_color(dpg.mvThemeCol_FrameBg,
+                        (125, 50, 60), category=dpg.mvThemeCat_Core)
 
-            imgui.bind_item_theme(input_text, theme_error)
+            dpg.bind_item_theme(input_text, theme_error)
 
             Wire.table_header(f"{self.parent}_node_{self.name}")
 
@@ -82,40 +82,40 @@ class Node:
         "Flip the input to the output"
 
         if self.is_fliped:
-            imgui.configure_item(f"{self.name}_link", attribute_type=imgui.mvNode_Attr_Output)
+            dpg.configure_item(f"{self.name}_link", attribute_type=dpg.mvNode_Attr_Output)
         else:
-            imgui.configure_item(f"{self.name}_link", attribute_type=imgui.mvNode_Attr_Input)
+            dpg.configure_item(f"{self.name}_link", attribute_type=dpg.mvNode_Attr_Input)
 
         self.is_fliped = not self.is_fliped
 
     def cable_attribute(self):
         "Attributes of the cable node"
 
-        with imgui.node_attribute():
-            imgui.add_text("In")
+        with dpg.node_attribute():
+            dpg.add_text("In")
 
-        with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Output):
-            imgui.add_text("Out")
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output):
+            dpg.add_text("Out")
 
-        with imgui.node_attribute(attribute_type=imgui.mvNode_Attr_Static):
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
             Wire.table_header(f"{self.parent}_node_{self.name}")
 
     def add_wire(self, wire):
-        with imgui.node_attribute(parent=f"{self.parent}_node_{self.name}",
-            attribute_type=imgui.mvNode_Attr_Static):
+        with dpg.node_attribute(parent=f"{self.parent}_node_{self.name}",
+            attribute_type=dpg.mvNode_Attr_Static):
 
             wire.add_to_table(f"{self.parent}_node_{self.name}")
 
-            #imgui.add_button(label="x", callback=self.remove_wire)
+            #dpg.add_button(label="x", callback=self.remove_wire)
 
     def callback_remove_wire(self, sender):
-        parent = imgui.get_item_parent(sender)
-        wire = imgui.get_value(imgui.get_item_children(parent, slot=1)[1])
+        parent = dpg.get_item_parent(sender)
+        wire = dpg.get_value(dpg.get_item_children(parent, slot=1)[1])
 
         self.wires.remove(wire)
 
-        node_attribute = imgui.get_item_parent(parent)
-        imgui.delete_item(node_attribute)
+        node_attribute = dpg.get_item_parent(parent)
+        dpg.delete_item(node_attribute)
 
     def callback_wire_drop(self, _sender, wire):
         "Get when a wire is dropped on to the node"
