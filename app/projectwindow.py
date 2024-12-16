@@ -49,21 +49,60 @@ class ProjectWindow:
 
     def wire_editor(self):
         "Wire editor"
+        unsaved_grid_data = None
 
+        # Load wire_grid
         wire_grid = DataGrid(
             title="Wire editor",
             columns = ['', 'Color', 'Name', 'Gauge'],
             dtypes = [DataGrid.COLOR, DataGrid.COMBO, DataGrid.TXT_STRING, DataGrid.TXT_INT],
             defaults = [(255, 255, 255, 255), False, "New wire", 20],
             combo_lists = [None, [key for key in Wire.str_to_color], None, None],
+            data=self.save["wire"]
         )
 
-        self.load_wires(wire_grid)
+        def enable_editor():
+            nonlocal unsaved_grid_data
+            unsaved_grid_data = eval_grid.evaluate_grid().data
+
+            dpg.disable_item(edit_button)
+
+            dpg.enable_item(editing_buttons)
+            dpg.enable_item(editor)
+
+        def disable_editor():
+            dpg.enable_item(edit_button)
+
+            dpg.disable_item(editing_buttons)
+            dpg.disable_item(editor)
+
+        def cancel():
+            nonlocal unsaved_grid_data
+
+            eval_grid.set_grid_data(unsaved_grid_data)
+
+            disable_editor()
+
+        def save_change():
+            self.save["wire"] = eval_grid.evaluate_grid().data
+
+            disable_editor()
 
         dpg.add_text("", tag=f"{self.name}_wire_error_label", color=(250, 100, 120))
 
-        wire_editor_id = dpg.generate_uuid()
-        eval_grid = listEditCtrl(wire_editor_id, grid=wire_grid)
+        # Edit, Cancel and Save buttons
+        with dpg.group(horizontal=True):
+            with dpg.group() as edit_button:
+                dpg.add_button(label="Edit", callback=enable_editor)
+
+            with dpg.group(horizontal=True, enabled=False) as editing_buttons:
+                dpg.add_button(label="Cancel", callback=cancel)
+                dpg.add_button(label="Save", callback=save_change)
+
+        # Editor grid
+        with dpg.group(enabled=False) as editor:
+            wire_editor_id = dpg.generate_uuid()
+            eval_grid = listEditCtrl(wire_editor_id, grid=wire_grid)
 
     def bill_of_material(self):
         "BOM"
@@ -81,7 +120,7 @@ class ProjectWindow:
                     for j in range(0, 3):
                         dpg.add_text(f"Row{i} Column{j}")
 
-    def load_wires(self, wire_grid):
+    """def load_wires(self, wire_grid):
         for wire_name in self.save.get_children("wire"):
             wire = Wire(
                 wire_name,
@@ -102,7 +141,7 @@ class ProjectWindow:
 
         if status == "":
             self.save["wire", name] = (color, gauge)
-            wire.add_to_table(self.name)
+            wire.add_to_table(self.name)"""
 
     def part_drop(self, sender, part):
         "Make nodes from draging part"

@@ -3,14 +3,16 @@ import dearpygui.dearpygui as dpg
 from datasave import DataSave
 
 class PartManager:
+    "Part Manager menu"
+
     def __init__(self):
-        self.save = DataSave("part_manager.json", ["manufacturer", "part"])
+        self.save = DataSave("part_manager.json")
 
         dpg.add_text("Add part")
         dpg.add_input_text(label="name", tag="part_name")
 
         dpg.add_text("Manufacturer list")
-        dpg.add_listbox(self.save.get_list("manufacturer"), tag="manufacturer_list")
+        #dpg.add_listbox(self.save.get_list("manufacturer"), tag="manufacturer_list")
 
         dpg.add_button(label="Select")
 
@@ -32,7 +34,7 @@ class PartManager:
         dpg.add_input_text(label="filter", tag="part_filter",
             callback=self.part_filter)
 
-        dpg.add_listbox(self.save.get_list("part"),
+        dpg.add_listbox(self.save.get_children("part"),
             tag="part_list", num_items=20, callback=self.part_selected)
 
         with dpg.drag_payload(parent="part_list", tag="part_list_payload",
@@ -53,15 +55,17 @@ class PartManager:
         part_manufacturer = dpg.get_value("manufacturer_list")
         part_pin = dpg.get_value("connector_pin")
 
-        status = self.save.update("part", part_name, (part_manufacturer, part_pin))
+        status = self.save.check_tag_integrity(f"part_{part_name}")
 
         if status == "":
-            dpg.configure_item("part_list", items=self.save.get_list("part"))
+            self.save["part", part_name] = (part_manufacturer, part_pin)
+            dpg.configure_item("part_list", items=self.save.get_children("part"))
 
     def update_manufacturer_save_file(self):
         "Update manufacturer save file with a callback"
-        status = self.save.update("manufacturer", dpg.get_value("manufacturer_input_text"), None)
+        status = self.save.check_tag_integrity(f"manufacturer_{dpg.get_value("manufacturer_input_text")}")
 
         if status == "":
+            self.save["manufacturer", dpg.get_value("manufacturer_input_text")] = True
             dpg.configure_item("manufacturer_list",
-                items=self.save.get_list("manufacturer"))
+                items=self.save.get_children("manufacturer"))

@@ -19,8 +19,8 @@ class MainWindow:
                 with dpg.menu(label="Project manager", tag="project_menu"):
                     ProjectManager()
 
-                #with dpg.menu(label="Part library"):
-                    #PartManager()
+                with dpg.menu(label="Part library"):
+                    PartManager()
 
                 with dpg.menu(label="Help"):
                     pass

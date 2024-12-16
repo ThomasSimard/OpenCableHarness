@@ -7,7 +7,8 @@ class DataGrid:
     CHECKBOX = 3
     COLOR = 4
 
-    def __init__(self, title, columns, dtypes, defaults, combo_lists = None, data=None):
+    def __init__(self, title, columns, dtypes, defaults,
+            combo_lists = None, data=None):
         """
         Create a new DataGrid.
 
@@ -15,6 +16,7 @@ class DataGrid:
         :param columns: List of column names.
         :param dtypes: List of data types for each column.
         :param defaults: List of default values for each column.
+        :param callback: List of callback for when value change.
         :param combo_lists: List of combo lists for each column.
         :param data: 2D list for grid data, ordered data[col][row].
         """
@@ -42,6 +44,7 @@ class DataGrid:
     def copy(self):
         ret = self.empty_like()
         ret.data = copy.deepcopy(self.data)
+
         return ret
 
     def empty_like(self):
@@ -59,6 +62,7 @@ class DataGrid:
             row = self.defaults
         elif len(row) != len(self.columns):
             raise ValueError("Row does not match the column structure")
+
         for col in range(len(row)):
             if(isinstance(row[col], DataGrid)): # fails
                 self.data[col].append(row[col].copy())
@@ -87,10 +91,10 @@ class DataGrid:
     def get_cell(self, col_idx, row_idx):
         return self.data[col_idx][row_idx]
 
-    def execute_callback(self, col_idx, row_idx):
-        callback = self.callbacks[col_idx]
-        if callback:
-            callback(self, row_idx)
+    #def execute_callback(self, col_idx, row_idx):
+    #    callback = self.callbacks[col_idx]
+    #    if callback:
+    #        callback(self, row_idx)
 
     def display(self):
         for column in self.columns:
@@ -99,8 +103,5 @@ class DataGrid:
 
         for row in range(len(self.data[0])):
             for col in range(len(self.data)):
-                if self.dtypes[col] == DataGrid.GRID:
-                    print(f"{self.data[col][row].title:15s}", end=" ")
-                else:
-                    print(f"{str(self.data[col][row]):15s}", end=" ")
+                print(f"{str(self.data[col][row]):15s}", end=" ")
             print()

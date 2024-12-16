@@ -9,7 +9,7 @@ class ProjectManager:
     "Project Manager menu"
 
     def __init__(self):
-        self.save = DataSave("project_manager_save.json")
+        self.save = DataSave("project_manager.json")
 
         self.open_last_session_project()
 
