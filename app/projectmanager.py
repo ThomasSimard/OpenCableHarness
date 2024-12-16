@@ -79,7 +79,7 @@ class ProjectManager:
         dpg.set_value("create_project_name", "")
 
         # Save open tabs
-        self.save["last_session", name] = None
+        self.save["last_session", name] = True
 
         with dpg.tab(label=name, tag=name, parent="project_tab_bar"):
             ProjectWindow(name, self.close_project_tab)

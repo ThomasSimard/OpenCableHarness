@@ -11,7 +11,7 @@ class Node:
     position = ""
     lenght = 0
 
-    wires = dict()
+    wires: dict = dict()
 
     def __init__(self, parent,
             name, color, node_type, position, wires):
@@ -28,10 +28,9 @@ class Node:
         self.is_fliped = False
 
         with dpg.node(label=f"{self.node_type} - {self.name}",
-            tag=f"{self.parent}_node_{self.name}",
             pos=self.position,
-            parent=f"{self.parent}_node_editor",
-            drop_callback=self.callback_wire_drop, payload_type="wire"):
+            parent=self.parent,
+            drop_callback=self.callback_wire_drop, payload_type="wire") as self.node_id:
 
             if self.node_type == "Cable":
                 self.cable_attribute()
@@ -58,12 +57,22 @@ class Node:
 
     def part_attribute(self):
         "Attributes of the part node"
-        with dpg.node_attribute(tag=f"{self.parent}_{self.name}_link",
-            attribute_type=dpg.mvNode_Attr_Output):
+
+        def callback_flip_node(node_attribute):
+            "Flip the input to the output"
+
+            if self.is_fliped:
+                dpg.configure_item(node_attribute, attribute_type=dpg.mvNode_Attr_Output)
+            else:
+                dpg.configure_item(node_attribute, attribute_type=dpg.mvNode_Attr_Input)
+
+            self.is_fliped = not self.is_fliped
+
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output) as node_attribute:
             dpg.add_text("Connection")
 
         with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
-            dpg.add_button(label="Flip", callback=self.callback_flip_node)
+            dpg.add_button(label="Flip", callback=lambda: callback_flip_node(node_attribute))
 
             input_text = dpg.add_input_text(label="Part", width=150,
                         payload_type="part")
@@ -77,16 +86,6 @@ class Node:
             dpg.bind_item_theme(input_text, theme_error)
 
             Wire.table_header(f"{self.parent}_node_{self.name}")
-
-    def callback_flip_node(self):
-        "Flip the input to the output"
-
-        if self.is_fliped:
-            dpg.configure_item(f"{self.name}_link", attribute_type=dpg.mvNode_Attr_Output)
-        else:
-            dpg.configure_item(f"{self.name}_link", attribute_type=dpg.mvNode_Attr_Input)
-
-        self.is_fliped = not self.is_fliped
 
     def cable_attribute(self):
         "Attributes of the cable node"

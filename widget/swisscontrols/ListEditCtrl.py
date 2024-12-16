@@ -5,34 +5,6 @@ import dearpygui.dearpygui as dpg
 from widget.swisscontrols.DataGrid import DataGrid
 from widget.swisscontrols.TableHelpers import swap_row_values
 
-def listEditCtrlDialog(grid: DataGrid, send_grid: Callable[[DataGrid], None]):
-    """
-    Creates a ListEditCtrl dialog.
-
-    :param grid: The input data source for the control.
-    :param send_grid: Callback method to the parent control.
-    """
-    # TODO - change tag to support a dialog within a dialog
-    with dpg.window(label="Modal Dialog",
-                    modal=True,
-                    show=True,
-                    no_title_bar=True,
-                    pos=dpg.get_mouse_pos(local=False),
-                    width=430,
-                    height=400) as id_modal:
-
-        table_id = dpg.generate_uuid()
-        get_grid = listEditCtrl(table_id, grid, height=360)
-
-        def on_ok():
-            send_grid(get_grid())
-            dpg.delete_item(id_modal)
-
-        with dpg.group(horizontal=True):
-            dpg.add_button(label="Accept", width=75, callback=on_ok)
-            dpg.add_button(label="Cancel", width=75, callback=lambda: dpg.delete_item(id_modal))
-
-
 def listEditCtrl(table_id, grid: DataGrid, height=-1, **kwargs):
     """
     Creates a ListEditCtrl widget.
@@ -111,12 +83,18 @@ def listEditCtrl(table_id, grid: DataGrid, height=-1, **kwargs):
                                        default_value=row[col_idx],
                                        hint="Enter text here", width=200, callback=_set_focus, user_data=row_id)
                     _register_widget_click(id_input_text, row_id)
+                elif grid.dtypes[col_idx] == DataGrid.TXT_INT:
+                    id_input_int_text = dpg.generate_uuid()
+                    dpg.add_input_int(tag=id_input_int_text,
+                                      default_value=row[col_idx], min_value=1, min_clamped=True,
+                                      width=125, callback=_set_focus, user_data=row_id)
+                    _register_widget_click(id_input_int_text, row_id)
                 elif grid.dtypes[col_idx] == DataGrid.COMBO:
                     id_input_combo = dpg.generate_uuid()
                     dpg.add_combo(tag=id_input_combo,
                                   items=grid.combo_lists[col_idx],
                                   default_value=grid.combo_lists[col_idx][row[col_idx]],
-                                  no_preview=False, width=200, callback=_set_focus, user_data=row_id)
+                                  no_preview=False, width=150, callback=_set_focus, user_data=row_id)
                     _register_widget_click(id_input_combo, row_id)
                 elif grid.dtypes[col_idx] == DataGrid.COLOR:
                     id_color_pikr = dpg.generate_uuid()
@@ -124,13 +102,6 @@ def listEditCtrl(table_id, grid: DataGrid, height=-1, **kwargs):
                                        default_value=row[col_idx],
                                        no_inputs=True, callback=_set_focus, user_data=row_id)
                     _register_widget_click(id_color_pikr, row_id)
-                elif grid.dtypes[col_idx] == DataGrid.GRID:
-                    id_button = dpg.generate_uuid()
-
-                    dpg.add_button(tag=id_button,
-                                   label="Configure",
-                                   callback=lambda: listEditCtrlDialog(grid=_grid_ref().data[col_idx][row_idx], send_grid=lambda new_grid: _subgrid_callback(col_idx, row_idx, new_grid)),
-                                   user_data=row_id)
                 else:
                     raise ValueError("unsupported data type")
 
@@ -250,10 +221,7 @@ def listEditCtrl(table_id, grid: DataGrid, height=-1, **kwargs):
             new_row = []
             cells = list(dpg.get_item_children(row_id)[1])
             for col_idx, col_id in enumerate(cells[1:-1]):  # Skip the first and last cell.
-                if grid.dtypes[col_idx] == DataGrid.GRID:
-                    # Get subgrid from grid
-                    new_row.append(grid.get_cell(col_idx, row_idx))
-                elif grid.dtypes[col_idx] == DataGrid.COMBO:
+                if grid.dtypes[col_idx] == DataGrid.COMBO:
                     selection = dpg.get_value(col_id)
                     idx = grid.combo_lists[col_idx].index(selection)
                     new_row.append(idx)

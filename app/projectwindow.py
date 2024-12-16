@@ -18,14 +18,12 @@ class ProjectWindow:
         self.save = DataSave(f"projects/{self.name}.json")
 
         with dpg.group(horizontal=True):
-            with dpg.group(width=200):
+            with dpg.child_window(width=200, border=True, resizable_x=True):
                 self.project_settings(close_project_tab)
-
-                dpg.add_separator()
 
                 with dpg.tab_bar():
                     with dpg.tab(label="Wire"):
-                        self.wire()
+                        self.wire_editor()
 
             with dpg.tab_bar():
                 with dpg.tab(label="Node editor",
@@ -49,46 +47,23 @@ class ProjectWindow:
             dpg.add_button(label="Close project",
                 user_data=self.name, callback=close_project_tab)
 
-    def wire(self):
+    def wire_editor(self):
         "Wire editor"
 
         wire_grid = DataGrid(
             title="Wire editor",
-            columns = ['Color', 'Name', 'Gauge'],
-            dtypes = [DataGrid.COLOR, DataGrid.TXT_STRING, DataGrid.COMBO],
-            defaults = [False, "New wire", 0],
-            combo_lists = [None, None, ["Avacado", "Banana", "Lemon", "Pear"]]
+            columns = ['', 'Color', 'Name', 'Gauge'],
+            dtypes = [DataGrid.COLOR, DataGrid.COMBO, DataGrid.TXT_STRING, DataGrid.TXT_INT],
+            defaults = [(255, 255, 255, 255), False, "New wire", 20],
+            combo_lists = [None, [key for key in Wire.str_to_color], None, None],
         )
 
-        with dpg.group(width=200):
-            id_fruits = dpg.generate_uuid()
-            eval_grid = listEditCtrl(id_fruits, grid=wire_grid)
+        self.load_wires(wire_grid)
 
-        """dpg.add_text("", tag=f"{self.name}_wire_error_label", color=(250, 100, 120))
+        dpg.add_text("", tag=f"{self.name}_wire_error_label", color=(250, 100, 120))
 
-        dpg.add_text("Add wire")
-        dpg.add_input_text(label="name", tag=f"{self.name}_input_name")
-
-        dpg.add_listbox(tag=f"{self.name}_color_list",
-            items=[key for key in Wire.str_to_color],
-            num_items=len(Wire.str_to_color))
-
-        dpg.add_color_edit(no_alpha=True)
-
-        dpg.add_input_int(label="awg",
-            default_value=20, min_value=1, min_clamped=True,
-            tag=f"{self.name}_input_awg")
-
-        dpg.add_button(label="Add", callback=self.add_wire)
-
-        dpg.add_separator()
-
-        dpg.add_text("Wire list")
-
-        with dpg.child_window(width=200):
-            Wire.table_header(self.name)
-
-        self.load_wires()"""
+        wire_editor_id = dpg.generate_uuid()
+        eval_grid = listEditCtrl(wire_editor_id, grid=wire_grid)
 
     def bill_of_material(self):
         "BOM"
@@ -106,14 +81,14 @@ class ProjectWindow:
                     for j in range(0, 3):
                         dpg.add_text(f"Row{i} Column{j}")
 
-    def load_wires(self):
+    def load_wires(self, wire_grid):
         for wire_name in self.save.get_children("wire"):
             wire = Wire(
                 wire_name,
                 self.save["wire", wire_name][0],
                 self.save["wire", wire_name][1])
 
-            wire.add_to_table(self.name)
+            wire_grid.append([(255, 255, 255, 255), False, wire.name, wire.gauge])
 
     def add_wire(self):
         name = dpg.get_value(f"{self.name}_input_name")

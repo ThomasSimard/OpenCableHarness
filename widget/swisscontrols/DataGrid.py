@@ -3,12 +3,10 @@ import copy
 class DataGrid:
     TXT_STRING = 0
     TXT_INT = 1
-    TXT_FLOAT = 2
-    COMBO = 3
-    CHECKBOX = 4
-    GRID = 5
-    COLOR = 6
-    
+    COMBO = 2
+    CHECKBOX = 3
+    COLOR = 4
+
     def __init__(self, title, columns, dtypes, defaults, combo_lists = None, data=None):
         """
         Create a new DataGrid.
@@ -22,13 +20,13 @@ class DataGrid:
         """
         if not isinstance(columns, list) or not isinstance(dtypes, list) or not isinstance(defaults, list):
             raise ValueError("Columns, dtypes, and defaults must be lists.")
-        
+
         if len(columns) != len(dtypes) or len(columns) != len(defaults):
             raise ValueError("Columns, dtypes, and defaults must have the same length.")
 
         if combo_lists is not None and (not isinstance(combo_lists, list) or len(columns) != len(combo_lists)):
             raise ValueError("Combo_lists must be a list with the same length as columns.")
-        
+
         self.title = title
         self.columns = columns
         self.dtypes = dtypes
