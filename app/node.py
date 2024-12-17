@@ -75,17 +75,19 @@ class Node:
             "Flip the input to the output"
 
             if self.is_fliped:
-                dpg.configure_item(node_attribute, attribute_type=dpg.mvNode_Attr_Output)
+                dpg.configure_item(node_attribute,
+                    user_data="OUT", attribute_type=dpg.mvNode_Attr_Output)
             else:
-                dpg.configure_item(node_attribute, attribute_type=dpg.mvNode_Attr_Input)
+                dpg.configure_item(node_attribute,
+                    user_data="IN", attribute_type=dpg.mvNode_Attr_Input)
 
             self.is_fliped = not self.is_fliped
 
-        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output) as node_attribute:
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output) as self.attr_out:
             dpg.add_text("Connection")
 
         with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
-            dpg.add_button(label="Flip", callback=lambda: callback_flip_node(node_attribute))
+            dpg.add_button(label="Flip", callback=lambda: callback_flip_node(self.attr_out))
 
             input_text = dpg.add_input_text(label="Part", width=150,
                         payload_type="part")
@@ -101,28 +103,12 @@ class Node:
     def cable_attribute(self):
         "Attributes of the cable node"
 
-        with dpg.node_attribute():
+        with dpg.node_attribute(user_data="IN") as self.attr_in:
             dpg.add_text("In")
 
-        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output):
+        with dpg.node_attribute(user_data="OUT",
+                attribute_type=dpg.mvNode_Attr_Output) as self.attr_out:
             dpg.add_text("Out")
-
-    def add_wire(self, wire):
-        with dpg.node_attribute(parent=f"{self.parent}_node_{self.name}",
-            attribute_type=dpg.mvNode_Attr_Static):
-
-            wire.add_to_table(f"{self.parent}_node_{self.name}")
-
-            #dpg.add_button(label="x", callback=self.remove_wire)
-
-    def callback_remove_wire(self, sender):
-        parent = dpg.get_item_parent(sender)
-        wire = dpg.get_value(dpg.get_item_children(parent, slot=1)[1])
-
-        #self.save
-
-        node_attribute = dpg.get_item_parent(parent)
-        dpg.delete_item(node_attribute)
 
     def callback_wire_drop(self, _sender, wire):
         "Get when a wire is dropped on to the node"

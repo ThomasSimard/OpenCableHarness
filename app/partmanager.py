@@ -22,19 +22,9 @@ class PartManager:
             data=self.save["part"]
         )
 
-        # Edit, Cancel and Save buttons
-        with dpg.group(horizontal=True):
-            with dpg.group() as edit_button:
-                dpg.add_button(label="Edit")
-
-            with dpg.group(horizontal=True, enabled=False) as editing_buttons:
-                dpg.add_button(label="Cancel")
-                dpg.add_button(label="Save")
-
         # Editor grid
-        with dpg.group(enabled=False) as editor:
-            grid_id = dpg.generate_uuid()
-            eval_grid = ListEditCtrl(grid_id, grid=part_grid, width=200, height=200)
+        grid_id = dpg.generate_uuid()
+        eval_grid = ListEditCtrl(grid_id, grid=part_grid, width=200, height=200)
 
         """dpg.add_text("Add part")
         dpg.add_input_text(label="name", tag="part_name")

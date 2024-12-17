@@ -22,9 +22,18 @@ class NodeEditor:
                 with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
                     dpg.add_text("Refference node!")
 
+            nodes = {}
+
             # Load nodes from save file
             for node in self.save.get_children("node"):
-                Node.from_json(self.editor_id, node, self.save)
+                nodes[node] = Node.from_json(self.editor_id, node, self.save)
+
+            # Load links from file
+            for link in self.save.get_children("link"):
+                node_in: Node = nodes[link]
+                node_out: Node = nodes[self.save["link", link]]
+
+                dpg.add_node_link(attr_1=node_in.attr_in, attr_2=node_out.attr_out)
 
     def handlers(self):
         draging_node = None
@@ -199,6 +208,15 @@ class NodeEditor:
         "Runs when node connect attributes"
         dpg.add_node_link(parent=sender, attr_1=data[0], attr_2=data[1])
 
+        node0 = dpg.get_item_user_data(dpg.get_item_parent(data[0]))
+        node1 = dpg.get_item_user_data(dpg.get_item_parent(data[1]))
+
+        if dpg.get_item_user_data(data[0]) == "IN":
+            self.save["link", node0] = node1
+        else:
+            self.save["link", node1] = node0
+
     def delink_nodes(self, _, data):
         "Runs when node are deleted so disconnect attributes"
         dpg.delete_item(data)
+        del self.save["link", str(data[0]), str(data[1])]
