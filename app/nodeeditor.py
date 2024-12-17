@@ -15,7 +15,7 @@ class NodeEditor:
         self.handlers()
 
         with dpg.node_editor(minimap=True,
-            minimap_location=1,
+            minimap_location=dpg.mvNodeMiniMap_Location_BottomRight,
             callback=self.link_nodes, delink_callback=self.delink_nodes) as self.editor_id:
 
             with dpg.node(label="Home node", draggable=False) as self.home_node:
@@ -210,7 +210,6 @@ class NodeEditor:
         # Popup menu
         with dpg.window(tag="popup", pos=dpg.get_mouse_pos(local=False),
                 no_resize=True, no_move=True, no_title_bar=True, no_collapse=True,
-                height=80,
                 label="Add node"):
 
             dpg.add_menu_item(label="Add node", callback=add_node)
@@ -224,6 +223,7 @@ class NodeEditor:
                 dpg.add_menu_item(label="Unlink", callback=lambda: unlink(links))
 
             if nodes:
+                dpg.add_spacer(height=25)
                 dpg.add_menu_item(label="Delete nodes", callback=lambda: delete_nodes(nodes))
 
     def link_nodes(self, sender, data):

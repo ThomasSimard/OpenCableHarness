@@ -102,12 +102,16 @@ class Node:
     def cable_attribute(self):
         "Attributes of the cable node"
 
+        # Two attributes on the same line
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
+            dpg.add_spacer(width=100)
+
         with dpg.node_attribute(user_data="IN") as self.attr_in:
-            dpg.add_text("In")
+            dpg.bind_item_theme(dpg.last_item(), "theme_no_padding")
 
         with dpg.node_attribute(user_data="OUT",
                 attribute_type=dpg.mvNode_Attr_Output) as self.attr_out:
-            dpg.add_text("Out")
+            dpg.bind_item_theme(dpg.last_item(), "theme_no_padding")
 
     def callback_wire_drop(self, _sender, wire):
         "Get when a wire is dropped on to the node"

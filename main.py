@@ -2,11 +2,14 @@
 import dearpygui.dearpygui as dpg
 
 from app.mainwindow import MainWindow
-
+from widget.theme import Theme
 
 def main():
     "Main fonction of the app"
+
     dpg.create_context()
+
+    Theme()
 
     #dpg.show_documentation()
     #dpg.show_style_editor()

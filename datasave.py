@@ -89,7 +89,7 @@ class DataSave:
 
         try:
             with open(self.get_path(), 'w', encoding='utf-8') as file:
-                file.write(json.dumps(self.data))
+                file.write(json.dumps(self.data, indent=4))
         except FileNotFoundError:
             try:
                 os.mkdir("data")
@@ -102,4 +102,4 @@ class DataSave:
                 pass
 
             with open(self.get_path(), 'w', encoding='utf-8') as file:
-                file.write(json.dumps(self.data))
+                file.write(json.dumps(self.data, indent=4))
