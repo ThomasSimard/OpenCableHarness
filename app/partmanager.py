@@ -24,6 +24,12 @@ class PartManager:
             nonlocal manufacturer_eval_grid
             self.save["manufacturer"] = manufacturer_eval_grid.evaluate_grid().data
 
+            # Update part grid with modified manufacturer list
+            # TODO optimization
+            nonlocal part_grid
+            nonlocal part_eval_grid
+            part_eval_grid.set_grid_data(part_grid.data)
+
         manufacturer_grid_id = dpg.generate_uuid()
         manufacturer_eval_grid = ListEditCtrl(manufacturer_grid_id,
                         save_change=save_manufacturer_change, grid=manufacturer_grid, height=200)

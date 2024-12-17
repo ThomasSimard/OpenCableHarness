@@ -55,9 +55,9 @@ class ProjectWindow:
         wire_grid = DataGrid(
             title = "Wire editor",
             columns = ['', 'Color', 'Name', 'Gauge'],
-            dtypes = [DataGrid.COLOR, DataGrid.TXT_STRING, DataGrid.TXT_STRING, DataGrid.TXT_INT],
-            defaults = [(255, 255, 255, 255), "a", "New wire", 20],
-            #combo_lists = [False, [key for key in Wire.str_to_color], False, False],
+            dtypes = [DataGrid.COLOR_CODE, DataGrid.COMBO, DataGrid.TXT_STRING, DataGrid.TXT_INT],
+            defaults = [0, 0, "New wire", 20],
+            combo_lists = [False, [key for key in Wire.str_to_color], False, False],
             data = self.save["wire"]
         )
 

@@ -6,6 +6,7 @@ class DataGrid:
     COMBO = 2
     CHECKBOX = 3
     COLOR = 4
+    COLOR_CODE = 5
 
     def __init__(self, title, columns, dtypes, defaults,
             combo_lists=None, data=None):

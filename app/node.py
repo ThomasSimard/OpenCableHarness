@@ -81,21 +81,13 @@ class Node:
             apply_flip_attribute(self.save["node-part", self.name, "flipped"])
 
         with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output) as self.attr:
-            dpg.add_text("Connection")
+            dpg.add_spacer(width=100)
 
         with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
-            dpg.add_button(label="Flip", callback=callback_flip_node)
+            #dpg.add_button(label="Flip", callback=callback_flip_node)
 
-            input_text = dpg.add_input_text(label="Part", width=150,
-                        payload_type="part")
-
-            with dpg.theme() as theme_error:
-                with dpg.theme_component(dpg.mvAll):
-
-                    dpg.add_theme_color(dpg.mvThemeCol_FrameBg,
-                        (125, 50, 60), category=dpg.mvThemeCat_Core)
-
-            dpg.bind_item_theme(input_text, theme_error)
+            dpg.add_text("Part")
+            dpg.add_combo(items=[0,1], width=100)
 
         apply_flip_attribute(self.save["node-part", self.name, "flipped"])
 

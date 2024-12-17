@@ -9,3 +9,9 @@ class Theme:
             with dpg.theme_component(dpg.mvAll):
                 dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 0, 0)
                 dpg.add_theme_style(dpg.mvStyleVar_ItemSpacing, 0, 0)
+
+        with dpg.theme(tag="theme_error"):
+            with dpg.theme_component(dpg.mvAll):
+
+                dpg.add_theme_color(dpg.mvThemeCol_FrameBg,
+                    (125, 50, 60), category=dpg.mvThemeCat_Core)

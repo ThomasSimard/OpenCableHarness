@@ -23,6 +23,7 @@ class ListEditCtrl:
         self.width = width
         self.height = height
 
+        self.focus_index = -1
         self.show()
 
     def show(self):
@@ -142,9 +143,6 @@ class ListEditCtrl:
         if row_idx >= self.grid.shape[0]:
             self.grid.append(self.grid.defaults)
 
-        if self.focus_index < 0:
-            self.focus_index = 0
-
         # need to feed in the row index for the callbacks
         with dpg.table_row(parent = self.table_id) as row_id:
 
@@ -182,11 +180,27 @@ class ListEditCtrl:
                                     default_value=row[col_idx],
                                     no_inputs=True, callback=self._set_focus, user_data=row_id)
                     self._register_widget_click(id_color_pikr, row_id)
+                elif self.grid.dtypes[col_idx] == DataGrid.COLOR_CODE:
+                    # Color preview
+                    id_color_button = dpg.generate_uuid()
+                    dpg.add_color_button(tag=id_color_button,
+                                    default_value=(0, 0, 0, 255),
+                                    callback=self._set_focus, user_data=row_id)
+                    self._register_widget_click(id_color_button, row_id)
                 else:
                     raise ValueError("unsupported data type")
 
             # close out the row
             dpg.add_selectable(height=20, span_columns=True, callback=self._set_focus, user_data=row_id)
+
+    def set_focus_index(self, index, need_unhighlight=True):
+        if self.focus_index >= 0 and need_unhighlight:
+            dpg.unhighlight_table_row(self.table_id, self.focus_index)
+
+        self.focus_index = index
+
+        if self.focus_index >= 0:
+            dpg.highlight_table_row(self.table_id, self.focus_index, [15,86,135])
 
     def _delete_row(self):
         if self.focus_index < 0:
@@ -200,11 +214,7 @@ class ListEditCtrl:
         self.grid.drop(self.focus_index)
 
         # move the focus_index up if list length is less than focus_index
-        if(self.focus_index >= len(dpg.get_item_children(self.table_id)[1])):
-            self.focus_index -= 1
-        # call _set_focus on the current index
-        if(self.focus_index >= 0):
-            dpg.highlight_table_row(self.table_id, self.focus_index, [15,86,135])
+        self.set_focus_index(-1, False)
 
     def _move_row_up(self):
         row_ids = dpg.get_item_children(self.table_id, 1)
@@ -214,9 +224,7 @@ class ListEditCtrl:
         swap_row_values(self.table_id, self.focus_index, self.focus_index-1)
         self.grid.swap_rows(self.focus_index, self.focus_index-1)
 
-        dpg.unhighlight_table_row(self.table_id, self.focus_index)
-        self.focus_index -= 1
-        dpg.highlight_table_row(self.table_id, self.focus_index, [15,86,135])
+        self.set_focus_index(self.focus_index - 1)
 
         return True
 
@@ -226,32 +234,25 @@ class ListEditCtrl:
             return False
 
         swap_row_values(self.table_id, self.focus_index, self.focus_index+1)
-        self.grid.swap_rows(self.focus_index, self.table_id.focus_index+1)
+        self.grid.swap_rows(self.focus_index, self.focus_index+1)
 
-        dpg.unhighlight_table_row(self.table_id, self.focus_index)
-        self.focus_index += 1
-        dpg.highlight_table_row(self.table_id, self.focus_index, [15,86,135])
+        self.set_focus_index(self.focus_index + 1)
 
         return True
 
-    focus_index=0
     def _set_focus(self, sender, app_data, user_data): # TODO fix this method sig or rename `_set_focus_from_widget`
         if (dpg.get_item_type(sender) == "mvAppItemType::mvSelectable"):
             dpg.set_value(sender, False)
 
-        dpg.unhighlight_table_row(self.table_id, self.focus_index)
         table_children = dpg.get_item_children(self.table_id, 1)
-        self.focus_index = table_children.index(user_data)
-        dpg.highlight_table_row(self.table_id, self.focus_index, [15,86,135])
+
+        self.set_focus_index(table_children.index(user_data))
 
     def _on_widget_click(self, row_id):
-            dpg.unhighlight_table_row(self.table_id, self.focus_index)
             # this is slow but good enough for prototyping
             table_children = dpg.get_item_children(self.table_id, 1)
-            focus_index = table_children.index(row_id)
-            # print(table_children, row_id, focus_index)
-            dpg.highlight_table_row(self.table_id, focus_index, [15,86,135])
-            # highlight_row(table_id, focus_index)
+
+            self.set_focus_index(table_children.index(row_id))
 
     def _register_widget_click(self, sender, row_id):
         handler_tag = f"{row_id} handler"
