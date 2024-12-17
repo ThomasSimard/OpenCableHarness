@@ -37,30 +37,6 @@ class Wire:
             dpg.add_text(self.name)
             dpg.add_text(f"{self.gauge} awg")
 
-    @staticmethod
-    def table_header(table_name):
-        "Table header for the representation of a wire"
-        with dpg.table(tag=f"{table_name}_wire_table", width=180):
-            dpg.add_table_column(label="Color", width=25, width_fixed=True)
-            dpg.add_table_column(label="Name")
-            dpg.add_table_column(label="Awg", width=25, width_fixed=True)
-            dpg.add_table_column(label="", width=25, width_fixed=True)
-
-    def add_to_table(self, table_name):
-        "Add wire to the table"
-        with dpg.table_row(parent=f"{table_name}_wire_table"):
-            dpg.add_color_button(default_value=Wire.str_to_color[self.color])
-
-            text = dpg.add_text(self.name)
-
-            dpg.add_text(self.gauge)
-
-            with dpg.drag_payload(parent=text,
-                drag_data=self,
-                payload_type="wire"):
-
-                self.show()
-
 class Connector:
     "Class representing a connector"
     name = ""

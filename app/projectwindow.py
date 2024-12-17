@@ -2,7 +2,7 @@
 import dearpygui.dearpygui as dpg
 
 from widget.swisscontrols.DataGrid import DataGrid
-from widget.swisscontrols.ListEditCtrl import listEditCtrl
+from widget.swisscontrols.ListEditCtrl import ListEditCtrl
 
 from datasave import DataSave
 
@@ -29,7 +29,7 @@ class ProjectWindow:
                 with dpg.tab(label="Node editor",
                     drop_callback=self.part_drop, payload_type="part"):
 
-                    NodeEditor(self.name, self.save)
+                    NodeEditor(self.save)
                 with dpg.tab(label="BOM"):
                     with dpg.child_window():
                         self.bill_of_material()
@@ -53,56 +53,21 @@ class ProjectWindow:
 
         # Load wire_grid
         wire_grid = DataGrid(
-            title="Wire editor",
+            title = "Wire editor",
             columns = ['', 'Color', 'Name', 'Gauge'],
-            dtypes = [DataGrid.COLOR, DataGrid.COMBO, DataGrid.TXT_STRING, DataGrid.TXT_INT],
-            defaults = [(255, 255, 255, 255), False, "New wire", 20],
-            combo_lists = [None, [key for key in Wire.str_to_color], None, None],
-            data=self.save["wire"]
+            dtypes = [DataGrid.COLOR, DataGrid.TXT_STRING, DataGrid.TXT_STRING, DataGrid.TXT_INT],
+            defaults = [(255, 255, 255, 255), "a", "New wire", 20],
+            #combo_lists = [False, [key for key in Wire.str_to_color], False, False],
+            data = self.save["wire"]
         )
 
-        def enable_editor():
-            nonlocal unsaved_grid_data
-            unsaved_grid_data = eval_grid.evaluate_grid().data
-
-            dpg.disable_item(edit_button)
-
-            dpg.enable_item(editing_buttons)
-            dpg.enable_item(editor)
-
-        def disable_editor():
-            dpg.enable_item(edit_button)
-
-            dpg.disable_item(editing_buttons)
-            dpg.disable_item(editor)
-
-        def cancel():
-            nonlocal unsaved_grid_data
-
-            eval_grid.set_grid_data(unsaved_grid_data)
-
-            disable_editor()
-
         def save_change():
+            nonlocal eval_grid
             self.save["wire"] = eval_grid.evaluate_grid().data
 
-            disable_editor()
-
-        dpg.add_text("", tag=f"{self.name}_wire_error_label", color=(250, 100, 120))
-
-        # Edit, Cancel and Save buttons
-        with dpg.group(horizontal=True):
-            with dpg.group() as edit_button:
-                dpg.add_button(label="Edit", callback=enable_editor)
-
-            with dpg.group(horizontal=True, enabled=False) as editing_buttons:
-                dpg.add_button(label="Cancel", callback=cancel)
-                dpg.add_button(label="Save", callback=save_change)
-
         # Editor grid
-        with dpg.group(enabled=False) as editor:
-            wire_editor_id = dpg.generate_uuid()
-            eval_grid = listEditCtrl(wire_editor_id, grid=wire_grid)
+        wire_editor_id = dpg.generate_uuid()
+        eval_grid = ListEditCtrl(wire_editor_id, save_change=save_change, grid=wire_grid)
 
     def bill_of_material(self):
         "BOM"

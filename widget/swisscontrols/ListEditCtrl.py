@@ -5,7 +5,7 @@ import dearpygui.dearpygui as dpg
 from widget.swisscontrols.DataGrid import DataGrid
 from widget.swisscontrols.TableHelpers import swap_row_values
 
-class listEditCtrl:
+class ListEditCtrl:
     """
     Creates a ListEditCtrl widget.
 
@@ -13,18 +13,70 @@ class listEditCtrl:
     :param grid: The input data source for the control.
     """
 
-    def __init__(self, table_id, grid: DataGrid, height=-1):
+    def __init__(self, table_id, grid: DataGrid, editable=True, save_change=None, width=-1, height=-1):
         self.table_id = table_id
         self.grid = grid
+        self.editable = editable
+
+        self.save_change = save_change
+
+        self.width = width
         self.height = height
 
         self.show()
 
     def show(self):
-        with dpg.child_window(menubar=True, height=self.height):
+        unsaved_grid_data = None
+
+        def enable_editor():
+            nonlocal unsaved_grid_data
+            unsaved_grid_data = self.evaluate_grid().data
+
+            dpg.disable_item(edit_button)
+
+            dpg.enable_item(editing_buttons)
+            dpg.enable_item(self.edit_buttons)
+
+            #for row in dpg.get_item_children(self.table_id, slot=1):
+            #    for item in dpg.get_item_children(row, slot=1):
+            #        dpg.enable_item(item)
+
+        def disable_editor():
+            dpg.enable_item(edit_button)
+
+            dpg.disable_item(editing_buttons)
+            dpg.disable_item(self.edit_buttons)
+
+            #for row in dpg.get_item_children(self.table_id, slot=1):
+            #    for item in dpg.get_item_children(row, slot=1):
+            #        dpg.disable_item(item)
+
+        def cancel():
+            nonlocal unsaved_grid_data
+
+            self.set_grid_data(unsaved_grid_data)
+
+            disable_editor()
+
+        def save_change():
+            self.save_change()
+
+            disable_editor()
+
+        # Edit, Cancel and Save buttons
+        with dpg.group(horizontal=True):
+            with dpg.group() as edit_button:
+                dpg.add_button(label="Edit", callback=enable_editor)
+
+            with dpg.group(horizontal=True, enabled=False) as editing_buttons:
+                dpg.add_button(label="Cancel", callback=cancel)
+                dpg.add_button(label="Save", callback=save_change)
+
+        with dpg.child_window(menubar=True, frame_style=False, width=self.width, height=self.height):
             with dpg.menu_bar():
                 dpg.add_text(self.grid.title)
-            with dpg.group(horizontal=True):
+
+            with dpg.group(horizontal=True, show=self.editable, enabled=False) as self.edit_buttons:
                 dpg.add_button(label="Add", tag=dpg.generate_uuid(), callback=lambda: self._add_row(use_defaults=True))
                 dpg.add_button(label="Remove", tag=dpg.generate_uuid(), callback=self._delete_row)
                 dpg.add_button(arrow=True, direction=dpg.mvDir_Up, callback=self._move_row_up)
@@ -39,6 +91,12 @@ class listEditCtrl:
                     dpg.add_table_column(parent=self.table_id,label=col)
 
                 self.set_grid_data(self.grid.data)
+
+    def set_editable(self, editable):
+        if editable:
+            dpg.show_item(self.edit_buttons)
+        else:
+            dpg.hide_item(self.edit_buttons)
 
     def _subgrid_callback(self, col_idx, row_idx, new_grid: DataGrid):
         """
@@ -91,32 +149,32 @@ class listEditCtrl:
 
                 if self.grid.dtypes[col_idx] == DataGrid.CHECKBOX:
                     dpg.add_checkbox(callback=self._set_focus,
-                                     default_value=row[col_idx],
-                                     user_data=row_id)
+                                    default_value=row[col_idx],
+                                    user_data=row_id)
                 elif self.grid.dtypes[col_idx] == DataGrid.TXT_STRING:
                     id_input_text = dpg.generate_uuid()
                     dpg.add_input_text(tag=id_input_text,
-                                       default_value=row[col_idx],
-                                       hint="Enter text here", width=200, callback=self._set_focus, user_data=row_id)
+                                    default_value=row[col_idx],
+                                    hint="Enter text here", width=200, callback=self._set_focus, user_data=row_id)
                     self._register_widget_click(id_input_text, row_id)
                 elif self.grid.dtypes[col_idx] == DataGrid.TXT_INT:
                     id_input_int_text = dpg.generate_uuid()
                     dpg.add_input_int(tag=id_input_int_text,
-                                      default_value=row[col_idx], min_value=1, min_clamped=True,
-                                      width=125, callback=self._set_focus, user_data=row_id)
+                                    default_value=row[col_idx], min_value=1, min_clamped=True,
+                                    width=125, callback=self._set_focus, user_data=row_id)
                     self._register_widget_click(id_input_int_text, row_id)
                 elif self.grid.dtypes[col_idx] == DataGrid.COMBO:
                     id_input_combo = dpg.generate_uuid()
                     dpg.add_combo(tag=id_input_combo,
-                                  items=self.grid.combo_lists[col_idx],
-                                  default_value=self.grid.combo_lists[col_idx][row[col_idx]],
-                                  no_preview=False, width=150, callback=self._set_focus, user_data=row_id)
+                                items=self.grid.combo_lists[col_idx],
+                                default_value=self.grid.combo_lists[col_idx][row[col_idx]],
+                                no_preview=False, width=150, callback=self._set_focus, user_data=row_id)
                     self._register_widget_click(id_input_combo, row_id)
                 elif self.grid.dtypes[col_idx] == DataGrid.COLOR:
                     id_color_pikr = dpg.generate_uuid()
                     dpg.add_color_edit(tag=id_color_pikr,
-                                       default_value=row[col_idx],
-                                       no_inputs=True, callback=self._set_focus, user_data=row_id)
+                                    default_value=row[col_idx],
+                                    no_inputs=True, callback=self._set_focus, user_data=row_id)
                     self._register_widget_click(id_color_pikr, row_id)
                 else:
                     raise ValueError("unsupported data type")

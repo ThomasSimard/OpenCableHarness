@@ -4,16 +4,15 @@ import dearpygui.dearpygui as dpg
 
 from app.node import Node
 
+from datasave import DataSave
+
 class NodeEditor:
     "Editor section"
 
-    def __init__(self, name, save):
-        self.name = name
+    def __init__(self, save: DataSave):
         self.save = save
 
-        with dpg.handler_registry():
-            dpg.add_mouse_click_handler(button=1, callback=self.popup)
-            dpg.add_mouse_click_handler(button=0, callback=self.callback_close_popup)
+        self.handlers()
 
         with dpg.node_editor(minimap=True,
             minimap_location=1,
@@ -25,7 +24,44 @@ class NodeEditor:
 
             # Load nodes from save file
             for node in self.save.get_children("node"):
-                node = Node.from_json(self.editor_id, node, self.save)
+                Node.from_json(self.editor_id, node, self.save)
+
+    def handlers(self):
+        draging_node = None
+        mouse_pos = None
+
+        def left_click_handler():
+            nonlocal draging_node
+            nonlocal mouse_pos
+
+            self.callback_close_popup()
+
+            draging_node = self._node_hovered()
+            mouse_pos = dpg.get_mouse_pos(local=False)
+
+        def left_release_handler():
+            nonlocal draging_node
+            nonlocal mouse_pos
+
+            if draging_node and mouse_pos != dpg.get_mouse_pos(local=False):
+                name = dpg.get_item_user_data(draging_node)
+                position = dpg.get_item_pos(draging_node)
+
+                self.save["node", name] = (self.save["node", name][0],
+                                           self.save["node", name][1],
+                                           position,
+                                           self.save["node", name][3])
+
+        with dpg.handler_registry():
+            dpg.add_mouse_click_handler(button=1, callback=self.popup)
+            dpg.add_mouse_click_handler(button=0, callback=left_click_handler)
+            dpg.add_mouse_release_handler(button=0, callback=left_release_handler)
+
+    def _node_hovered(self):
+        "Get if hover a node"
+        for node in dpg.get_item_children(self.editor_id, slot=1):
+            if dpg.is_item_hovered(node):
+                return node
 
     def add_node(self, _sender, _data, pos):
         "Add node to editor"
@@ -44,11 +80,9 @@ class NodeEditor:
         pos[1] = pos[1] - (ref_screen_pos[1] - 8) + ref_grid_pos[1]
 
         # Create node
-        node = Node(self.editor_id,
+        node = Node(self.editor_id, self.save,
             node_name, node_color,
             node_type, pos, dict())
-
-        self.save["node", node_name] = node.data()
 
         dpg.delete_item("popup")
 
@@ -131,6 +165,9 @@ class NodeEditor:
         def delete_nodes(nodes):
             # TODO : Do you want to delete those nodes
             for node in nodes:
+                name = dpg.get_item_user_data(node)
+                del self.save["node", name]
+
                 dpg.delete_item(node)
 
             dpg.delete_item("popup")
@@ -138,13 +175,6 @@ class NodeEditor:
         # Get selected nodes and links
         nodes = dpg.get_selected_nodes(self.editor_id)
         links = dpg.get_selected_links(self.editor_id)
-
-        # Get if hover a node
-        #hovered_node = None
-        #for node in dpg.get_item_children(self.editor_id, slot=1):
-        #    if dpg.is_item_hovered(node):
-        #        hovered_node = node
-        #        break
 
         # Popup menu
         with dpg.window(tag="popup", pos=dpg.get_mouse_pos(local=False),

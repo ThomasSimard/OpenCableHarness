@@ -17,7 +17,7 @@ def main():
     #dpg.show_item_registry()
 
     dpg.create_viewport(title='Open Cable Harness',
-        width=600, height=400, min_width=600, min_height=400)
+        width=800, height=600, min_width=800, min_height=600)
 
     MainWindow()
 

@@ -1,6 +1,9 @@
 """Node for the node editor"""
 import dearpygui.dearpygui as dpg
 
+from widget.swisscontrols.DataGrid import DataGrid
+from widget.swisscontrols.ListEditCtrl import ListEditCtrl
+
 from components import Wire
 
 class Node:
@@ -13,43 +16,53 @@ class Node:
 
     wires: dict = dict()
 
-    def __init__(self, parent,
+    def __init__(self, parent, save,
             name, color, node_type, position, wires):
         self.parent = parent
+        self.save = save
 
-        self.name = name
-        self.color = color
-
-        self.node_type = node_type
-        self.position = position
-
-        self.wires = wires
+        self.save["node", name] = (color, node_type, position, wires)
 
         self.is_fliped = False
 
-        with dpg.node(label=f"{self.node_type} - {self.name}",
-            pos=self.position,
-            parent=self.parent,
+        with dpg.node(parent=parent,
+            label=f"{self.save["node", name][1]} - {name}",
+            user_data=name,
+            pos=self.save["node", name][2],
             drop_callback=self.callback_wire_drop, payload_type="wire") as self.node_id:
 
-            if self.node_type == "Cable":
+            if node_type == "Cable":
                 self.cable_attribute()
-            elif self.node_type == "Part":
+            elif node_type == "Part":
                 self.part_attribute()
 
-            #Load wires
-            for wire in wires:
-                self.add_wire(Wire(wire, *wires[wire]))
+            with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
+                if self.save["wire"]:
+                    wires = self.save["wire"][2]
+                else:
+                    wires = [""]
+
+                wire_grid = DataGrid(
+                    title="Wires",
+                    columns = ['Wire'],
+                    dtypes = [DataGrid.COMBO],
+                    defaults = [False],
+                    combo_lists = [wires],
+                )
+
+                wire_editor_id = dpg.generate_uuid()
+                eval_grid = ListEditCtrl(wire_editor_id, grid=wire_grid, editable=False, width=100, height=100)
 
     @classmethod
     def from_json(cls, parent, name, save):
         "Create class from json"
 
-        return cls(parent, name,
+        return cls(parent, save, name,
             save["node", name][0],
             save["node", name][1],
             save["node", name][2],
-            save["node", name][3])
+            save["node", name][3]
+        )
 
     def data(self):
         "Class information without the name"
@@ -85,8 +98,6 @@ class Node:
 
             dpg.bind_item_theme(input_text, theme_error)
 
-            Wire.table_header(f"{self.parent}_node_{self.name}")
-
     def cable_attribute(self):
         "Attributes of the cable node"
 
@@ -95,9 +106,6 @@ class Node:
 
         with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output):
             dpg.add_text("Out")
-
-        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
-            Wire.table_header(f"{self.parent}_node_{self.name}")
 
     def add_wire(self, wire):
         with dpg.node_attribute(parent=f"{self.parent}_node_{self.name}",
@@ -111,7 +119,7 @@ class Node:
         parent = dpg.get_item_parent(sender)
         wire = dpg.get_value(dpg.get_item_children(parent, slot=1)[1])
 
-        self.wires.remove(wire)
+        #self.save
 
         node_attribute = dpg.get_item_parent(parent)
         dpg.delete_item(node_attribute)

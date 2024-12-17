@@ -8,7 +8,7 @@ class DataGrid:
     COLOR = 4
 
     def __init__(self, title, columns, dtypes, defaults,
-            combo_lists = None, data=None):
+            combo_lists=None, data=None):
         """
         Create a new DataGrid.
 
@@ -33,7 +33,9 @@ class DataGrid:
         self.columns = columns
         self.dtypes = dtypes
         self.defaults = defaults
+
         self.combo_lists = combo_lists or [None] * len(columns)
+
         self.data = data if data is not None else [[] for _ in columns]
 
     @property

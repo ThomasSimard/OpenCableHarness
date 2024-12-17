@@ -1,5 +1,8 @@
 import dearpygui.dearpygui as dpg
 
+from widget.swisscontrols.DataGrid import DataGrid
+from widget.swisscontrols.ListEditCtrl import ListEditCtrl
+
 from datasave import DataSave
 
 class PartManager:
@@ -8,7 +11,32 @@ class PartManager:
     def __init__(self):
         self.save = DataSave("part_manager.json")
 
-        dpg.add_text("Add part")
+        dpg.add_input_text(readonly=True)
+
+        part_grid = DataGrid(
+            title="Part library editor",
+            columns = ['Manufacturer', 'Name', 'Pins'],
+            dtypes = [DataGrid.COLOR, DataGrid.TXT_STRING, DataGrid.TXT_INT],
+            defaults = [(255, 255, 255, 255), "New wire", 20],
+            combo_lists = [None, None, None],
+            data=self.save["part"]
+        )
+
+        # Edit, Cancel and Save buttons
+        with dpg.group(horizontal=True):
+            with dpg.group() as edit_button:
+                dpg.add_button(label="Edit")
+
+            with dpg.group(horizontal=True, enabled=False) as editing_buttons:
+                dpg.add_button(label="Cancel")
+                dpg.add_button(label="Save")
+
+        # Editor grid
+        with dpg.group(enabled=False) as editor:
+            grid_id = dpg.generate_uuid()
+            eval_grid = ListEditCtrl(grid_id, grid=part_grid, width=200, height=200)
+
+        """dpg.add_text("Add part")
         dpg.add_input_text(label="name", tag="part_name")
 
         dpg.add_text("Manufacturer list")
@@ -40,10 +68,7 @@ class PartManager:
         with dpg.drag_payload(parent="part_list", tag="part_list_payload",
             drag_data=dpg.get_value("part_list"), payload_type="part"):
 
-            dpg.add_text(dpg.get_value("part_list"), tag="part_list_payload_label")
-
-    def part_filter(self, sender, value):
-        "Update listbox filter"
+            dpg.add_text(dpg.get_value("part_list"), tag="part_list_payload_label")"""
 
     def part_selected(self, _, part):
         dpg.configure_item("part_list_payload", drag_data=part)
