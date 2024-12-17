@@ -18,7 +18,7 @@ class NodeEditor:
             minimap_location=1,
             callback=self.link_nodes, delink_callback=self.delink_nodes) as self.editor_id:
 
-            with dpg.node(label="Home node", draggable=False):
+            with dpg.node(label="Home node", draggable=False) as self.home_node:
                 with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
                     dpg.add_text("Refference node!")
 
@@ -65,13 +65,19 @@ class NodeEditor:
             nonlocal mouse_pos
 
             if draging_node and mouse_pos != dpg.get_mouse_pos(local=False):
-                name = dpg.get_item_user_data(draging_node)
-                position = dpg.get_item_pos(draging_node)
+                # Save all the selected nodes that have been moved
+                for node in dpg.get_selected_nodes(self.editor_id):
+                    # Do not save the home node
+                    if node == self.home_node:
+                        continue
 
-                self.save["node", name] = (self.save["node", name][0],
-                                           self.save["node", name][1],
-                                           position,
-                                           self.save["node", name][3])
+                    name = dpg.get_item_user_data(node)
+                    position = dpg.get_item_pos(node)
+
+                    self.save["node", name] = (self.save["node", name][0],
+                                            self.save["node", name][1],
+                                            position,
+                                            self.save["node", name][3])
 
         with dpg.handler_registry():
             dpg.add_mouse_click_handler(button=1, callback=self.popup)
