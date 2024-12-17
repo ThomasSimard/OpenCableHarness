@@ -8,27 +8,23 @@ from components import Wire
 
 class Node:
     "Class representing a node"
-    name = ""
-    color = None
-    node_type = ""
-    position = ""
-    lenght = 0
-
-    wires: dict = dict()
+    COLOR = 0
+    TYPE = 1
+    POSITION = 2
+    WIRES = 3
 
     def __init__(self, parent, save,
             name, color, node_type, position, wires):
         self.parent = parent
         self.save = save
 
+        self.name = name
         self.save["node", name] = (color, node_type, position, wires)
 
-        self.is_fliped = False
-
         with dpg.node(parent=parent,
-            label=f"{self.save["node", name][1]} - {name}",
+            label=f"{self.save["node", name][Node.TYPE]} - {name}",
             user_data=name,
-            pos=self.save["node", name][2],
+            pos=self.save["node", name][Node.POSITION],
             drop_callback=self.callback_wire_drop, payload_type="wire") as self.node_id:
 
             if node_type == "Cable":
@@ -50,44 +46,45 @@ class Node:
                     combo_lists = [wires],
                 )
 
-                wire_editor_id = dpg.generate_uuid()
-                eval_grid = ListEditCtrl(wire_editor_id, grid=wire_grid, editable=False, width=100, height=100)
+                editor_id = dpg.generate_uuid()
+                eval_grid = ListEditCtrl(editor_id, grid=wire_grid, editable=False, width=100, height=100)
+
+    def get_type(self):
+        return self.save["node", self.name][Node.TYPE]
 
     @classmethod
     def from_json(cls, parent, name, save):
         "Create class from json"
 
         return cls(parent, save, name,
-            save["node", name][0],
-            save["node", name][1],
-            save["node", name][2],
-            save["node", name][3]
+            save["node", name][Node.COLOR],
+            save["node", name][Node.TYPE],
+            save["node", name][Node.POSITION],
+            save["node", name][Node.WIRES]
         )
-
-    def data(self):
-        "Class information without the name"
-        return (self.color, self.node_type, self.position, self.wires)
 
     def part_attribute(self):
         "Attributes of the part node"
 
-        def callback_flip_node(node_attribute):
-            "Flip the input to the output"
-
-            if self.is_fliped:
-                dpg.configure_item(node_attribute,
+        def apply_flip_attribute(flipped):
+            if flipped:
+                dpg.configure_item(self.attr,
                     user_data="OUT", attribute_type=dpg.mvNode_Attr_Output)
             else:
-                dpg.configure_item(node_attribute,
+                dpg.configure_item(self.attr,
                     user_data="IN", attribute_type=dpg.mvNode_Attr_Input)
 
-            self.is_fliped = not self.is_fliped
+        def callback_flip_node():
+            "Flip the input to the output"
+            self.save["node-part", self.name, "flipped"] = not self.save["node-part", self.name, "flipped"]
 
-        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output) as self.attr_out:
+            apply_flip_attribute(self.save["node-part", self.name, "flipped"])
+
+        with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output) as self.attr:
             dpg.add_text("Connection")
 
         with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
-            dpg.add_button(label="Flip", callback=lambda: callback_flip_node(self.attr_out))
+            dpg.add_button(label="Flip", callback=callback_flip_node)
 
             input_text = dpg.add_input_text(label="Part", width=150,
                         payload_type="part")
@@ -99,6 +96,8 @@ class Node:
                         (125, 50, 60), category=dpg.mvThemeCat_Core)
 
             dpg.bind_item_theme(input_text, theme_error)
+
+        apply_flip_attribute(self.save["node-part", self.name, "flipped"])
 
     def cable_attribute(self):
         "Attributes of the cable node"
@@ -112,8 +111,8 @@ class Node:
 
     def callback_wire_drop(self, _sender, wire):
         "Get when a wire is dropped on to the node"
-
-        self.wires[wire.name] = wire.data()
+        # TODO implement
+        #self.wires[wire.name] = wire.data()
         #status = self.save.update("node", self.name, self.data())
 
         #if status == "":

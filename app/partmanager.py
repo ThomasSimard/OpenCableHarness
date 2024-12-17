@@ -11,20 +11,39 @@ class PartManager:
     def __init__(self):
         self.save = DataSave("part_manager.json")
 
-        dpg.add_input_text(readonly=True)
+        # Manufacturer
+        manufacturer_grid = DataGrid(
+            title="Manufacturer editor",
+            columns = ['Name'],
+            dtypes = [DataGrid.TXT_STRING],
+            defaults = ["New manufacturer"],
+            data=self.save["manufacturer"],
+        )
 
+        def save_manufacturer_change():
+            nonlocal manufacturer_eval_grid
+            self.save["manufacturer"] = manufacturer_eval_grid.evaluate_grid().data
+
+        manufacturer_grid_id = dpg.generate_uuid()
+        manufacturer_eval_grid = ListEditCtrl(manufacturer_grid_id,
+                        save_change=save_manufacturer_change, grid=manufacturer_grid, height=200)
+
+        # Parts
         part_grid = DataGrid(
             title="Part library editor",
             columns = ['Manufacturer', 'Name', 'Pins'],
-            dtypes = [DataGrid.COLOR, DataGrid.TXT_STRING, DataGrid.TXT_INT],
-            defaults = [(255, 255, 255, 255), "New wire", 20],
-            combo_lists = [None, None, None],
+            dtypes = [DataGrid.COMBO, DataGrid.TXT_STRING, DataGrid.TXT_INT],
+            defaults = [0, "Part name", 2],
+            combo_lists = [self.save["manufacturer"][0], None, None],
             data=self.save["part"]
         )
 
-        # Editor grid
-        grid_id = dpg.generate_uuid()
-        eval_grid = ListEditCtrl(grid_id, grid=part_grid, width=200, height=200)
+        def save_part_change():
+            nonlocal part_eval_grid
+            self.save["part"] = part_eval_grid.evaluate_grid().data
+
+        part_grid_id = dpg.generate_uuid()
+        part_eval_grid = ListEditCtrl(part_grid_id, save_change=save_part_change, grid=part_grid, width=300, height=200)
 
         """dpg.add_text("Add part")
         dpg.add_input_text(label="name", tag="part_name")

@@ -37,6 +37,8 @@ class ListEditCtrl:
             dpg.enable_item(editing_buttons)
             dpg.enable_item(self.edit_buttons)
 
+            dpg.enable_item(self.table)
+
             #for row in dpg.get_item_children(self.table_id, slot=1):
             #    for item in dpg.get_item_children(row, slot=1):
             #        dpg.enable_item(item)
@@ -47,6 +49,7 @@ class ListEditCtrl:
             dpg.disable_item(editing_buttons)
             dpg.disable_item(self.edit_buttons)
 
+            dpg.disable_item(self.table)
             #for row in dpg.get_item_children(self.table_id, slot=1):
             #    for item in dpg.get_item_children(row, slot=1):
             #        dpg.disable_item(item)
@@ -63,18 +66,20 @@ class ListEditCtrl:
 
             disable_editor()
 
-        # Edit, Cancel and Save buttons
-        with dpg.group(horizontal=True):
-            with dpg.group() as edit_button:
-                dpg.add_button(label="Edit", callback=enable_editor)
-
-            with dpg.group(horizontal=True, enabled=False) as editing_buttons:
-                dpg.add_button(label="Cancel", callback=cancel)
-                dpg.add_button(label="Save", callback=save_change)
-
         with dpg.child_window(menubar=True, frame_style=False, width=self.width, height=self.height):
             with dpg.menu_bar():
                 dpg.add_text(self.grid.title)
+
+            # Edit, Cancel and Save buttons
+            with dpg.group(horizontal=True, show=self.editable):
+                with dpg.group() as edit_button:
+                    dpg.add_button(label="Edit", callback=enable_editor)
+
+                with dpg.group(horizontal=True, enabled=False) as editing_buttons:
+                    dpg.add_button(label="Cancel", callback=cancel)
+                    dpg.add_button(label="Save", callback=save_change)
+
+            dpg.add_separator()
 
             with dpg.group(horizontal=True, show=self.editable, enabled=False) as self.edit_buttons:
                 dpg.add_button(label="Add", tag=dpg.generate_uuid(), callback=lambda: self._add_row(use_defaults=True))
@@ -82,15 +87,16 @@ class ListEditCtrl:
                 dpg.add_button(arrow=True, direction=dpg.mvDir_Up, callback=self._move_row_up)
                 dpg.add_button(arrow=True, direction=dpg.mvDir_Down, callback=self._move_row_down)
 
-            with dpg.table(tag=self.table_id, header_row=True,
-                policy=dpg.mvTable_SizingStretchProp):
+            with dpg.group(enabled=False) as self.table:
+                with dpg.table(tag=self.table_id, header_row=True,
+                    policy=dpg.mvTable_SizingStretchProp):
 
-                dpg.add_table_column() # index column
+                    dpg.add_table_column() # index column
 
-                for col in self.grid.columns:
-                    dpg.add_table_column(parent=self.table_id,label=col)
+                    for col in self.grid.columns:
+                        dpg.add_table_column(parent=self.table_id,label=col)
 
-                self.set_grid_data(self.grid.data)
+                    self.set_grid_data(self.grid.data)
 
     def set_editable(self, editable):
         if editable:

@@ -30,10 +30,22 @@ class NodeEditor:
 
             # Load links from file
             for link in self.save.get_children("link"):
-                node_in: Node = nodes[link]
-                node_out: Node = nodes[self.save["link", link]]
+                node_names = link.split("_")
 
-                dpg.add_node_link(attr_1=node_in.attr_in, attr_2=node_out.attr_out)
+                node_in: Node = nodes[node_names[0]]
+                node_out: Node = nodes[node_names[1]]
+
+                if node_in.get_type() == "Part":
+                    attr_in = node_in.attr
+                else:
+                    attr_in = node_in.attr_in
+
+                if node_out.get_type() == "Part":
+                    attr_out = node_out.attr
+                else:
+                    attr_out = node_out.attr_out
+
+                dpg.add_node_link(user_data=(node_names[0], node_names[1]), attr_1=attr_in, attr_2=attr_out)
 
     def handlers(self):
         draging_node = None
@@ -165,6 +177,10 @@ class NodeEditor:
 
         def unlink(links):
             for link in links:
+                data = dpg.get_item_user_data(link)
+
+                del self.save["link", str(data[0]), str(data[1])]
+
                 dpg.delete_item(link)
 
             # Clear node slections
@@ -206,15 +222,24 @@ class NodeEditor:
 
     def link_nodes(self, sender, data):
         "Runs when node connect attributes"
-        dpg.add_node_link(parent=sender, attr_1=data[0], attr_2=data[1])
-
         node0 = dpg.get_item_user_data(dpg.get_item_parent(data[0]))
         node1 = dpg.get_item_user_data(dpg.get_item_parent(data[1]))
 
         if dpg.get_item_user_data(data[0]) == "IN":
-            self.save["link", node0] = node1
+            self.save["link", node0, node1] = True
+            user_data = (dpg.get_item_user_data(dpg.get_item_parent(data[0])),
+                       dpg.get_item_user_data(dpg.get_item_parent(data[1])))
         else:
-            self.save["link", node1] = node0
+            self.save["link", node1, node0] = True
+            user_data = (dpg.get_item_user_data(dpg.get_item_parent(data[1])),
+                       dpg.get_item_user_data(dpg.get_item_parent(data[0])))
+
+        dpg.add_node_link(
+            parent=sender,
+            user_data=user_data,
+            attr_1=data[0],
+            attr_2=data[1]
+        )
 
     def delink_nodes(self, _, data):
         "Runs when node are deleted so disconnect attributes"
