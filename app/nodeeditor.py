@@ -2,7 +2,7 @@
 
 import dearpygui.dearpygui as dpg
 
-from app.node import Node
+from app.node import Node, Cable, Part
 
 from datasave import DataSave
 
@@ -11,6 +11,7 @@ class NodeEditor:
 
     def __init__(self, save: DataSave):
         self.save = save
+        Node.save = save
 
         self.handlers()
 
@@ -26,7 +27,10 @@ class NodeEditor:
 
             # Load nodes from save file
             for node in self.save.get_children("node"):
-                nodes[node] = Node.from_json(self.editor_id, node, self.save)
+                if Node.get_data(node)[2] == "Cable":
+                    nodes[node] = Cable.from_json(self.editor_id, node)
+                else:
+                    nodes[node] = Part.from_json(self.editor_id, node)
 
             # Load links from file
             for link in self.save.get_children("link"):
@@ -35,17 +39,14 @@ class NodeEditor:
                 node_in: Node = nodes[node_names[0]]
                 node_out: Node = nodes[node_names[1]]
 
-                if node_in.get_type() == "Part":
-                    attr_in = node_in.attr
-                else:
-                    attr_in = node_in.attr_in
+                attr_in = node_in.get_attribute_in()
+                attr_out = node_out.get_attribute_out()
 
-                if node_out.get_type() == "Part":
-                    attr_out = node_out.attr
-                else:
-                    attr_out = node_out.attr_out
-
-                dpg.add_node_link(user_data=(node_names[0], node_names[1]), attr_1=attr_in, attr_2=attr_out)
+                dpg.add_node_link(
+                    user_data=(node_names[0], node_names[1]),
+                    attr_1=attr_in,
+                    attr_2=attr_out
+                )
 
     def handlers(self):
         draging_node = None
@@ -74,10 +75,7 @@ class NodeEditor:
                     name = dpg.get_item_user_data(node)
                     position = dpg.get_item_pos(node)
 
-                    self.save["node", name] = (self.save["node", name][0],
-                                            self.save["node", name][1],
-                                            position,
-                                            self.save["node", name][3])
+                    Node.update_data(name, Node.get_data(name)[0], position, Node.get_data(name)[2])
 
         with dpg.handler_registry():
             dpg.add_mouse_click_handler(button=1, callback=self.popup)
@@ -107,9 +105,10 @@ class NodeEditor:
         pos[1] = pos[1] - (ref_screen_pos[1] - 8) + ref_grid_pos[1]
 
         # Create node
-        node = Node(self.editor_id, self.save,
-            node_name, node_color,
-            node_type, pos, dict())
+        if node_type == "Cable":
+            Cable(self.editor_id, node_name, node_color, pos)
+        else:
+            Part(self.editor_id, node_name, node_color, pos)
 
         dpg.delete_item("popup")
 

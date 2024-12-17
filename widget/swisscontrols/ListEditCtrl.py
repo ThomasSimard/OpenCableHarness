@@ -13,10 +13,10 @@ class ListEditCtrl:
     :param grid: The input data source for the control.
     """
 
-    def __init__(self, table_id, grid: DataGrid, editable=True, save_change=None, width=-1, height=-1):
+    def __init__(self, table_id, grid: DataGrid, force_save=True, save_change=None, width=-1, height=-1):
         self.table_id = table_id
         self.grid = grid
-        self.editable = editable
+        self.force_save = force_save
 
         self.save_change = save_change
 
@@ -67,12 +67,14 @@ class ListEditCtrl:
 
             disable_editor()
 
-        with dpg.child_window(menubar=True, frame_style=False, width=self.width, height=self.height):
-            with dpg.menu_bar():
-                dpg.add_text(self.grid.title)
+        with dpg.child_window(menubar=self.force_save,
+                frame_style=False, width=self.width, height=self.height):
+            if self.force_save:
+                with dpg.menu_bar():
+                    dpg.add_text(self.grid.title)
 
             # Edit, Cancel and Save buttons
-            with dpg.group(horizontal=True, show=self.editable):
+            with dpg.group(horizontal=True, show=self.force_save):
                 with dpg.group() as edit_button:
                     dpg.add_button(label="Edit", callback=enable_editor)
 
@@ -82,13 +84,13 @@ class ListEditCtrl:
 
             dpg.add_separator()
 
-            with dpg.group(horizontal=True, show=self.editable, enabled=False) as self.edit_buttons:
+            with dpg.group(horizontal=True, enabled=not self.force_save) as self.edit_buttons:
                 dpg.add_button(label="Add", tag=dpg.generate_uuid(), callback=lambda: self._add_row(use_defaults=True))
                 dpg.add_button(label="Remove", tag=dpg.generate_uuid(), callback=self._delete_row)
                 dpg.add_button(arrow=True, direction=dpg.mvDir_Up, callback=self._move_row_up)
                 dpg.add_button(arrow=True, direction=dpg.mvDir_Down, callback=self._move_row_down)
 
-            with dpg.group(enabled=False) as self.table:
+            with dpg.group(enabled=not self.force_save) as self.table:
                 with dpg.table(tag=self.table_id, header_row=True,
                     policy=dpg.mvTable_SizingStretchProp):
 

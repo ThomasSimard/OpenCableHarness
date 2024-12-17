@@ -35,12 +35,18 @@ class PartManager:
                         save_change=save_manufacturer_change, grid=manufacturer_grid, height=200)
 
         # Parts
+        def get_manufacturer_list():
+            if self.save["manufacturer"]:
+                return self.save["manufacturer"][0]
+            else:
+                return []
+
         part_grid = DataGrid(
             title="Part library editor",
             columns = ['Manufacturer', 'Name', 'Pins'],
             dtypes = [DataGrid.COMBO, DataGrid.TXT_STRING, DataGrid.TXT_INT],
             defaults = [0, "Part name", 2],
-            combo_lists = [self.save["manufacturer"][0], None, None],
+            combo_lists = [get_manufacturer_list(), None, None],
             data=self.save["part"]
         )
 
